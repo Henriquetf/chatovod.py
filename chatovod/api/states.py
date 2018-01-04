@@ -3,7 +3,7 @@ from enum import Enum
 
 class AccountService(Enum):
     """Service where the account is registered."""
-    guest = 'guest'
+    guest = None
     chatovod = 'ch'
     facebook = 'fb'
     google = 'go'
@@ -45,7 +45,7 @@ class RoomType(Enum):
 
 class Gender(Enum):
     """The gender of the user."""
-    none = 0
+    none = None
     female = 1
     male = 2
 
@@ -55,7 +55,7 @@ class Gender(Enum):
 
 class Group(Enum):
     """The group which the user belongs to."""
-    user = 'user'
+    user = None
     moderator = 'moderator'
     admin = 'admin'
 
@@ -65,7 +65,7 @@ class Group(Enum):
 
 class Status(Enum):
     """The current availability of the user."""
-    online = 'online'
+    online = None
     away = 'away'
     dnd = 'dnd'
     invisible = 'invis'
