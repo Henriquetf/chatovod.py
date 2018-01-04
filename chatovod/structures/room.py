@@ -7,7 +7,7 @@ class Room:
     __slots__ = ('id', 'type', 'name', 'can_be_closed',
                  'display_user_flow', 'welcome_message')
 
-    def __init__(self, event):
+    def __init__(self, *, event):
         self.id = event['id']
         self.type = RoomType(event.get('t'))
 
