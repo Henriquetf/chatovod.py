@@ -36,7 +36,7 @@ class User:
                  'nickname_colour', 'message_colour', 'vip',
                  'bold_nickname', 'bold_message')
 
-    def __init__(self, event):
+    def __init__(self, *, event):
         self.nickname = event['nick']
         self.id = str(event.get('id'))
 
