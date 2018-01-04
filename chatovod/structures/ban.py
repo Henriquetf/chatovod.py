@@ -1,7 +1,5 @@
 import datetime
 
-from chatovod.structures.base import Model
-from chatovod.structures.field import Field, ExtraField
 from chatovod.util.time import twelve_to_24_clock
 
 
@@ -22,11 +20,14 @@ def parse_until(fields):
     return until
 
 
-class BanEntry(Model):
+class BanEntry:
 
-    id = Field(int, 'id')
-    nickname = Field(str, 'nickname')
-    author = Field(str, 'author')
-    comment = Field(str, 'comment')
-    duration = Field(int, 'duration')
-    until = ExtraField(parse_until)
+    def __init__(self, *, event):
+        self.id = event['id']
+        self.nickname = event['nickname']
+        self.author = event['author']
+        self.comment = event['comment']
+        self.duration = event['duration']
+
+        # TODO: Find out how the hell parse_until was called before
+        self.until = parse_until()
