@@ -59,7 +59,7 @@ class TabActivate(Model):
         The ID of the window which changed the selected room.
     """
     room = Field(int, 'id')
-    window = Field(int, 'iwid', default=None)
+    window = Field(int, 'iwid')
     scope = Field(str, 'type')
 
 
@@ -85,7 +85,7 @@ class EmojiList(Model):
     emojis = Field(list, 'smileys')
     groups = Field(list, 'cats')
     default_path = Field(str, 'dp')
-    custom_path = Field(str, 'p', default=None)
+    custom_path = Field(str, 'p')
 
 
 @ReceiveEvent('error')
@@ -150,23 +150,23 @@ class ModerateInfo(Model):
         The domain of the service of the account.
         None if the user is not logged into an account.
     """
-    message_ip = Field('messageIp', default=None)
+    message_ip = Field(str, 'messageIp')
 
-    ip = Field('lastIp', default=None)
-    location = Field(str, 'lastIpGeo', default=None)
+    ip = Field(str, 'lastIp')
+    location = Field(str, 'lastIpGeo')
 
-    user_agent = Field(str, 'lastUserAgent', default=None)
+    user_agent = Field(str, 'lastUserAgent')
 
-    nick_id = Field(int, 'nickId', default=None)
-    account_id = Field(int, 'accountId', default=None)
+    nick_id = Field(int, 'nickId')
+    account_id = Field(int, 'accountId')
 
-    last_login = Field(int, 'lastEnterToChat', default=None)
+    last_login = Field(int, 'lastEnterToChat')
 
-    nickname_created_at = Field(int, 'createdInChat', default=None)
-    registered_timestamp = Field(int, 'created', default=None)
+    nickname_created_at = Field(int, 'createdInChat')
+    registered_timestamp = Field(int, 'created')
 
-    account_service_name = Field(AccountService, 'accountType', default=None)
-    account_service_domain = Field(str, 'accountTypeTitle', default=None)
+    account_service_name = Field(AccountService, 'accountType')
+    account_service_domain = Field(str, 'accountTypeTitle')
 
     banned = Field(bool, 'banned', default=False)
 
