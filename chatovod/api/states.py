@@ -67,8 +67,7 @@ class Status(Enum):
     """The current availability of the user."""
     online = 'online'
     away = 'away'
-    # dnd stands for "do not disturb"
-    busy = 'dnd'
+    dnd = 'dnd'
     invisible = 'invis'
 
     def _default(self):
