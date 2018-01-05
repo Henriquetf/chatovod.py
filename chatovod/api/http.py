@@ -11,6 +11,7 @@ class HTTPClient:
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.session_id = None
         self.csrf_token = None
+        self.window_id = '0'
 
         # TODO: define the user-agent
         self.user_agent = ''
@@ -119,16 +120,30 @@ class HTTPClient:
         return self.request(route)
 
     @asyncio.coroutine
-    def user_chat_enter(self):
+    def user_chat_enter(self, nickname, limit, captcha_sid, captcha_value):
         route = Endpoint.USER_CHAT_ENTER
 
-        return self.request(route)
+        data = {
+            'nick': nickname,
+            'limit': limit,
+            'wid': self.window_id,
+            'csrf': self.csrf_token,
+            'captchaSid': captcha_sid,
+            'captchaValue': captcha_value
+        }
+
+        return self.request(route, data=data)
 
     @asyncio.coroutine
     def user_chat_leave(self):
         route = Endpoint.USER_CHAT_LEAVE
 
-        return self.request(route)
+        params = {
+            'wid': self.window_id,
+            'csrf': self.csrf_token,
+        }
+
+        return self.request(route, params=params)
 
     @asyncio.coroutine
     def user_age_set(self):
