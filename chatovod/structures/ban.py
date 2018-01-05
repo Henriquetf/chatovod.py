@@ -28,6 +28,11 @@ class BanEntry:
         self.author = event['author']
         self.comment = event['comment']
         self.duration = event['duration']
+        self.until = event['until']
 
-        # TODO: Find out how the hell parse_until was called before
-        self.until = parse_until()
+
+class BanList:
+
+    def __init__(self, *, data_type, event):
+        self.data_type = data_type
+        self.content = event.get(self.data_type)
