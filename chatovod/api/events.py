@@ -1,15 +1,23 @@
-from chatovod.api.states import AccountService, RoomType, Group, Status, Gender
-from chatovod.structures.model import Model
-from chatovod.structures.field import Field
+from chatovod.structures.model import Model, Field
 
 
 class EventAdapter(Model):
+    """
+    """
 
     _key_for_event_type = 't'
 
     @classmethod
     def extract_event_type_from_raw(cls, raw):
+        """
+        """
         return raw.get(cls._key_for_event_type)
+
+    @classmethod
+    def build_as_dict(cls, raw):
+        obj = super().build_as_dict(raw)
+        obj[cls._key_for_event_type] = cls
+        return obj
 
 
 class TryAutoLogin(EventAdapter):
@@ -51,9 +59,9 @@ class TabActivate(EventAdapter):
     """
     type = 'ta'
 
-    room = Field(int, 'id')
-    window = Field(int, 'iwid')
-    scope = Field(str, 'type')
+    room_id = Field('id')
+    window = Field('iwid', transform=int)
+    scope = Field('type')
 
 
 class EmojiList(EventAdapter):
@@ -76,10 +84,10 @@ class EmojiList(EventAdapter):
     """
     type = 'sl'
 
-    emojis = Field(list, 'smileys')
-    groups = Field(list, 'cats')
-    default_path = Field(str, 'dp')
-    custom_path = Field(str, 'p')
+    emojis = Field('smileys')
+    groups = Field('cats')
+    default_path = Field('dp')
+    custom_path = Field('p')
 
 
 class Error(EventAdapter):
@@ -98,9 +106,9 @@ class Error(EventAdapter):
     """
     type = 'error'
 
-    description = Field(str, 'error')
-    group = Field(str, 'et')
-    category = Field(str, 'est')
+    description = Field('error')
+    group = Field('et')
+    category = Field('est')
 
 
 class ModerateInfo(EventAdapter):
@@ -137,34 +145,34 @@ class ModerateInfo(EventAdapter):
     account_id : int
         ID of the account of the user.
         None if the user is not logged into an account.
-    account_service_name : int
+    account_service_name : str
         The type of service of the account.
         None if the user is not logged into an account.
-    account_service_domain : int
+    account_service_domain : str
         The domain of the service of the account.
         None if the user is not logged into an account.
     """
     type = 'mi'
 
-    message_ip = Field(str, 'messageIp')
+    message_ip = Field('messageIp')
+    last_ip = Field('lastIp')
 
-    ip = Field(str, 'lastIp')
-    location = Field(str, 'lastIpGeo')
+    location = Field('lastIpGeo')
 
-    user_agent = Field(str, 'lastUserAgent')
+    user_agent = Field('lastUserAgent')
 
-    nick_id = Field(int, 'nickId')
-    account_id = Field(int, 'accountId')
+    nick_id = Field('nickId')
+    account_id = Field('accountId')
 
-    last_login = Field(int, 'lastEnterToChat')
+    last_login = Field('lastEnterToChat')
 
-    nickname_created_at = Field(int, 'createdInChat')
-    registered_timestamp = Field(int, 'created')
+    nickname_created_at = Field('createdInChat')
+    registered_timestamp = Field('created')
 
-    account_service_name = Field(AccountService, 'accountType')
-    account_service_domain = Field(str, 'accountTypeTitle')
+    account_service_name = Field('accountType')
+    account_service_domain = Field('accountTypeTitle')
 
-    banned = Field(bool, 'banned', default=False)
+    banned = Field('banned', default=False)
 
 
 class RoomCount(EventAdapter):
@@ -177,10 +185,15 @@ class RoomCount(EventAdapter):
     """
     type = 'urc'
 
-    count = Field(int, 'count')
+    count = Field('count')
 
 
-class Message(EventAdapter):
+class MessageBase(EventAdapter):
+    """
+    """
+
+
+class Message(MessageBase):
     """Message received event.
 
     Attributes
@@ -206,7 +219,7 @@ class Message(EventAdapter):
     """
     type = 'm'
 
-    room_id = Field(int, 'r')
+    room_id = Field('r')
     actions = Field('actions')
 
 
@@ -222,11 +235,11 @@ class MessageDelete(EventAdapter):
     """
     type = 'md'
 
-    room = Field(int, 'r')
-    messages = Field(list, 'ts')
+    room = Field('r')
+    messages = Field('ts')
 
 
-class MessageRead:
+class MessageRead(EventAdapter):
     """Represents a message read event.
 
     Attributes
@@ -240,12 +253,12 @@ class MessageRead:
     """
     type = 'pmr'
 
-    room = Field(int, 'r')
-    since = Field(int, 'fromTime')
-    until = Field(int, 'toTime')
+    room = Field('r')
+    since = Field('fromTime')
+    until = Field('toTime')
 
 
-class RoomUpdate:
+class RoomUpdate(EventAdapter):
     """Represents a room update event.
 
     Attributes
@@ -254,17 +267,17 @@ class RoomUpdate:
         The ID of the updated room.
     name : str
         The name of the room.
-    can_close : bool
+    can_be_closed : bool
         Determines if the room can be closed by the user or not.
     display_user_flow : true
         Determines if the room will disply user enter and leave messages.
     """
     type = 'ru'
 
-    id = Field(int, 'r')
-    name = Field(str, 'title')
-    can_close = Field(bool, 'closeable')
-    display_user_flow = Field(bool, 'showEnterLeave')
+    room_id = Field('r')
+    name = Field('title')
+    can_be_closed = Field('closeable', default=False)
+    display_user_flow = Field('showEnterLeave', default=False)
 
 
 class RoomOpen(RoomUpdate):
@@ -272,15 +285,15 @@ class RoomOpen(RoomUpdate):
 
     Attributes
     ----------
-    room_type : RoomType
+    room_type : str
         The type of the room.
     set_focus : bool
         Determines if the focus should be changed to the opened room.
     """
     type = 'ro'
 
-    room_type = Field(RoomType, 'channelType')
-    set_focus = Field(bool, 'active', False)
+    room_type = Field('channelType')
+    set_focus = Field('active', default=False)
 
 
 class RoomClose(EventAdapter):
@@ -293,8 +306,8 @@ class RoomClose(EventAdapter):
     """
     type = 'rc'
 
-    id = Field(int, 'r')
-    iwid = Field(int, 'iwid', default=0)
+    room_id = Field('r')
+    window = Field('iwid', default=0)
 
 
 class RoomClear(EventAdapter):
@@ -312,16 +325,16 @@ class RoomClear(EventAdapter):
     """
     type = 'tc'
 
-    room = Field(int, 'id')
-    scope = Field(str, 'type')
+    room = Field('id')
+    scope = Field('type')
 
 
-class UserEnterChat:
+class UserEnterChat(EventAdapter):
     """Represents a user enter chat event."""
     type = 'ue'
 
 
-class UserLeaveChat:
+class UserLeaveChat(EventAdapter):
     """Represents a user leave chat event.
 
     Attributes
@@ -331,7 +344,7 @@ class UserLeaveChat:
     """
     type = 'ul'
 
-    nickname = Field(str, 'nick')
+    nickname = Field('nick')
 
 
 class UserEnterRoom(MessageBase):
@@ -344,7 +357,7 @@ class UserLeaveRoom(MessageBase):
     type = 'ulr'
 
 
-class UserBan:
+class UserBan(EventAdapter):
     """Represents a user ban event.
 
     Attributes
@@ -368,16 +381,16 @@ class UserBan:
     """
     type = 'ub'
 
-    timestamp = Field(int, 'ts')
-    author = Field(str, 'modNick')
-    nickname = Field(str, 'bannedNick')
-    duration = Field(int, 'minutes')
-    until = Field(int, 'until')
-    comment = Field(str, 'comment')
-    room = Field(int, 'r')
+    timestamp = Field('ts')
+    author = Field('modNick')
+    nickname = Field('bannedNick')
+    duration = Field('minutes')
+    until = Field('until')
+    comment = Field('comment')
+    room = Field('r')
 
 
-class HasOlderMessages:
+class HasOlderMessages(EventAdapter):
     """Event that determines if the room has more messages to be displayed.
 
     This event is received when messages are fetched from a room.
@@ -391,11 +404,11 @@ class HasOlderMessages:
     """
     type = 'hoe'
 
-    room = Field(int, 'r')
-    value = Field(bool, 'hasOlderEvents')
+    room = Field('r')
+    value = Field('hasOlderEvents')
 
 
-class Random:
+class Random(EventAdapter):
     """Empty random event.
 
     Used for nothing(yet?).
@@ -403,7 +416,7 @@ class Random:
     type = 'rnd'
 
 
-class Action:
+class Action(Model):
     """Generic event that determines an action that must
     be performed by the user.
 
@@ -418,8 +431,6 @@ class Action:
     data : dict
         A dict containing generic values for the action.
     """
-    title = Field(str, 'title')
-    type = Field(str, 'type')
-    data = Field(dict, 'data')
-
-
+    title = Field('title')
+    type = Field('type')
+    data = Field('data')
