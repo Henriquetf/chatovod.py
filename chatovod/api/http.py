@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 
-from endpoints import APIEndpoint as Endpoint
+from .endpoints import APIEndpoint as Endpoint
 
 
 class HTTPClient:

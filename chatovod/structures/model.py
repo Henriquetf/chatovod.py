@@ -26,9 +26,12 @@ class Field:
     def try_transform(self, raw):
         # TODO: real implementation
         raw_value = self.extract_from_raw(raw)
-        value = raw_value
+        
+        transform = self.transform
+        if callable(transform):
+            return self.transform(raw_value)
 
-        return value
+        return raw_value
 
     @property
     def name_in_model(self):
@@ -88,6 +91,17 @@ class ModelBase(abc.ABCMeta):
 
 
 class Model(metaclass=ModelBase):
+
+    def __init__(self, data):
+        # TODO: translate raw data into obj attributes
+        ...
+
+    @classmethod
+    def create(cls, raw, **kwargs):
+        data = raw.copy()
+        data.update(kwargs)
+        instance = cls(data)
+        return instance
 
     @classmethod
     def build_as_dict(cls, raw):
