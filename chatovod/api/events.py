@@ -1,51 +1,42 @@
 from chatovod.api.states import AccountService, RoomType, Group, Status, Gender
-from chatovod.structures.base import Model, Field
+from chatovod.structures.model import Model
+from chatovod.structures.field import Field
 
 
-class ReceiveEvent:
+class EventAdapter(Model):
 
-    EVENTS_MAP = {}
+    _key_for_event_type = 't'
 
-    def __init__(self, event_type):
-        self.event_type = event_type
-
-    def __call__(self, model):
-        # Register event model
-        ReceiveEvent.EVENTS_MAP[self.event_type] = model
-        return model
+    @classmethod
+    def extract_event_type_from_raw(cls, raw):
+        return raw.get(cls._key_for_event_type)
 
 
-def model_from_event(event):
-    event_type = extract_raw_event_type(event)
-    return ReceiveEvent.EVENTS_MAP.get(event_type)
+class TryAutoLogin(EventAdapter):
+    """
+    """
+    type = 'tal'
 
 
-def extract_raw_event_type(raw_event):
-    return raw_event.get('t')
+class SO(EventAdapter):
+    """
+    """
+    type = 'so'
 
 
-@ReceiveEvent('tal')
-class TryAutoLogin(Model):
-    pass
+class CLS(EventAdapter):
+    """
+    """
+    type = 'cls'
 
 
-@ReceiveEvent('so')
-class SO(Model):
-    pass
+class CPO(EventAdapter):
+    """
+    """
+    type = 'cpo'
 
 
-@ReceiveEvent('cls')
-class CLS(Model):
-    pass
-
-
-@ReceiveEvent('cpo')
-class CPO(Model):
-    pass
-
-
-@ReceiveEvent('ta')
-class TabActivate(Model):
+class TabActivate(EventAdapter):
     """Event that changes the focus of the current selected room.
 
     Attributes
@@ -58,13 +49,14 @@ class TabActivate(Model):
     window : str
         The ID of the window which changed the selected room.
     """
+    type = 'ta'
+
     room = Field(int, 'id')
     window = Field(int, 'iwid')
     scope = Field(str, 'type')
 
 
-@ReceiveEvent('sl')
-class EmojiList(Model):
+class EmojiList(EventAdapter):
     """Event that defines a list of the available emojis in the chat.
 
     Attributes
@@ -82,14 +74,15 @@ class EmojiList(Model):
         it must be defined by the client.
         None if there are not custom emojis.
     """
+    type = 'sl'
+
     emojis = Field(list, 'smileys')
     groups = Field(list, 'cats')
     default_path = Field(str, 'dp')
     custom_path = Field(str, 'p')
 
 
-@ReceiveEvent('error')
-class Error(Model):
+class Error(EventAdapter):
     """Event that defines errors received by the API.
 
     This defines denied access and welcome messages.
@@ -103,13 +96,14 @@ class Error(Model):
     category : str
         The specific type, subgroup, of the error.
     """
+    type = 'error'
+
     description = Field(str, 'error')
     group = Field(str, 'et')
     category = Field(str, 'est')
 
 
-@ReceiveEvent('mi')
-class ModerateInfo(Model):
+class ModerateInfo(EventAdapter):
     """Information of the user that can be seen only by a moderator.
 
     Attributes
@@ -150,6 +144,8 @@ class ModerateInfo(Model):
         The domain of the service of the account.
         None if the user is not logged into an account.
     """
+    type = 'mi'
+
     message_ip = Field(str, 'messageIp')
 
     ip = Field(str, 'lastIp')
@@ -171,8 +167,7 @@ class ModerateInfo(Model):
     banned = Field(bool, 'banned', default=False)
 
 
-@ReceiveEvent('urc')
-class RoomCount(Model):
+class RoomCount(EventAdapter):
     """Event that determines the amount of public rooms in the chat.
 
     Attributes
@@ -180,11 +175,12 @@ class RoomCount(Model):
     count : int
         The amount of public rooms in the chat.
     """
+    type = 'urc'
+
     count = Field(int, 'count')
 
 
-@ReceiveEvent('m')
-class Message(Model):
+class Message(EventAdapter):
     """Message received event.
 
     Attributes
@@ -208,24 +204,13 @@ class Message(Model):
         Determines if the message is old and if it was
         retrieved with `ChatEndpoint.FETCH_MESSAGES`.
     """
-    id = Field(int, 'ts')
-    room = Field(int, 'r')
-    content = Field(str, 'm')
-    author = Field(str, 'f')
+    type = 'm'
 
-    old = Field(bool, 's', default=False)
-    fetched = Field(bool, 'pp', default=False)
-
-    to = Field(list, 'to')
-    cmd_me = Field(bool, 'nh', default=False)
-
-    # Private message
-    seen = Field(lambda v: not v, 'u', default=True)
+    room_id = Field(int, 'r')
     actions = Field('actions')
 
 
-@ReceiveEvent('md')
-class MessageDelete(Model):
+class MessageDelete(EventAdapter):
     """Represents a message delete event.
 
     Attributes
@@ -235,11 +220,12 @@ class MessageDelete(Model):
     messages : list
         A list of int timestamps of all deleted messages.
     """
+    type = 'md'
+
     room = Field(int, 'r')
     messages = Field(list, 'ts')
 
 
-@ReceiveEvent('pmr')
 class MessageRead:
     """Represents a message read event.
 
@@ -252,12 +238,13 @@ class MessageRead:
     until : int
         The most recent timestamp of the read messages.
     """
+    type = 'pmr'
+
     room = Field(int, 'r')
     since = Field(int, 'fromTime')
     until = Field(int, 'toTime')
 
 
-@ReceiveEvent('ru')
 class RoomUpdate:
     """Represents a room update event.
 
@@ -272,13 +259,14 @@ class RoomUpdate:
     display_user_flow : true
         Determines if the room will disply user enter and leave messages.
     """
+    type = 'ru'
+
     id = Field(int, 'r')
     name = Field(str, 'title')
     can_close = Field(bool, 'closeable')
     display_user_flow = Field(bool, 'showEnterLeave')
 
 
-@ReceiveEvent('ro')
 class RoomOpen(RoomUpdate):
     """Represents a room open event.
 
@@ -289,13 +277,13 @@ class RoomOpen(RoomUpdate):
     set_focus : bool
         Determines if the focus should be changed to the opened room.
     """
+    type = 'ro'
 
     room_type = Field(RoomType, 'channelType')
     set_focus = Field(bool, 'active', False)
 
 
-@ReceiveEvent('rc')
-class RoomClose(Model):
+class RoomClose(EventAdapter):
     """Represents a room close event.
 
     id : int
@@ -303,12 +291,13 @@ class RoomClose(Model):
     window : str
         The ID of the window that closed the room.
     """
+    type = 'rc'
+
     id = Field(int, 'r')
     iwid = Field(int, 'iwid', default=0)
 
 
-@ReceiveEvent('tc')
-class RoomClear(Model):
+class RoomClear(EventAdapter):
     """Represent a room clear event.
 
     Clears the messages of the room.
@@ -321,72 +310,18 @@ class RoomClear(Model):
         The type of the cleared object. Only has 'room' right now, which
         clears the content of the room.
     """
+    type = 'tc'
+
     room = Field(int, 'id')
     scope = Field(str, 'type')
 
 
-@ReceiveEvent('uu')
-class UserUpdate:
-    """Represents a user update event.
-
-    Attributes
-    ----------
-    nickname : str
-        The nickname of the user.
-    id : int
-        The ID of the user.
-        None if the user is not registered.
-    avatar_url : str
-        URL of the avatar. Does not contain the transfer protocol.
-        None if the user does not have an avatar or not logged into an account.
-    group : str
-        The group of the user: `user`, `moderator` or `admin`.
-        None if `user`.
-    status : str
-        The current status of the user: `online`, `dnd` or `away`.
-        None if `online`.
-    gender : int
-        The ID of the gender of the user: `none`, `female` or `male`.
-        `none`: 0
-        `female`: 1
-        `male`: 2
-        None if `none`.
-    nickname_colour : str
-        Hex colour of the nickname of the user. Does not start with `0x`.
-    message_colour : str
-        Hex colour of the messages sent by the user. Does not start with `0x`.
-        None if there's no custom colour.
-    vip : bool
-        Determines if the user is VIP.
-    bold_nickname : bool
-        Determines if the user has bold nickname.
-    bold_message : bool
-        Determines if the user has bold message text.
-    """
-    nickname = Field(str, 'nick')
-
-    id = Field(int, 'id')
-    avatar_url = Field(str, 'as')
-
-    group = Field(Group, 'g')
-    status = Field(Status, 's')
-    gender = Field(Gender, 'sx')
-
-    nickname_colour = Field(Colour, 'c')
-    message_colour = Field(Colour, 'tc')
-
-    vip = Field(bool, 'vip', default=False)
-    bold_nickname = Field(bool, 'b', default=False)
-    bold_message = Field(bool, 'bt', default=False)
-
-
-@ReceiveEvent('ue')
-class UserEnterChat(UserUpdate):
+class UserEnterChat:
     """Represents a user enter chat event."""
+    type = 'ue'
 
 
-@ReceiveEvent('ul')
-class UserLeaveChat(UserUpdate):
+class UserLeaveChat:
     """Represents a user leave chat event.
 
     Attributes
@@ -394,21 +329,21 @@ class UserLeaveChat(UserUpdate):
     nickname : str
         The nickname of the user who left the chat.
     """
+    type = 'ul'
 
     nickname = Field(str, 'nick')
 
 
-@ReceiveEvent('uer')
 class UserEnterRoom(MessageBase):
     """Represents a user enter room event."""
+    type = 'uer'
 
 
-@ReceiveEvent('ulr')
 class UserLeaveRoom(MessageBase):
     """Represents a user leave room event."""
+    type = 'ulr'
 
 
-@ReceiveEvent('ub')
 class UserBan:
     """Represents a user ban event.
 
@@ -431,6 +366,8 @@ class UserBan:
         The comment of the ban written by the author of the ban.
         None if there is not comment.
     """
+    type = 'ub'
+
     timestamp = Field(int, 'ts')
     author = Field(str, 'modNick')
     nickname = Field(str, 'bannedNick')
@@ -440,7 +377,6 @@ class UserBan:
     room = Field(int, 'r')
 
 
-@ReceiveEvent('hoe')
 class HasOlderMessages:
     """Event that determines if the room has more messages to be displayed.
 
@@ -453,16 +389,18 @@ class HasOlderMessages:
     value : bool
         Whether there are more messages available to be fetched or not.
     """
+    type = 'hoe'
+
     room = Field(int, 'r')
     value = Field(bool, 'hasOlderEvents')
 
 
-@ReceiveEvent('rnd')
 class Random:
     """Empty random event.
 
     Used for nothing(yet?).
     """
+    type = 'rnd'
 
 
 class Action:
@@ -485,7 +423,3 @@ class Action:
     data = Field(dict, 'data')
 
 
-class BanList:
-
-    data_type = Field(str, 't')
-    content = Field(str, 'html')
