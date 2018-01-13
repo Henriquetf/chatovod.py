@@ -1,6 +1,50 @@
 import abc
 
-from chatovod.structures.field import Field
+
+class Field:
+    """
+    """
+
+    __slots__ = ('name', 'model', 'transform', 'key_in_raw', 'default', 'required')
+
+    def __init__(self, key_in_raw, *, default=None, transform=None, required=False):
+        self.name = None
+        self.key_in_raw = key_in_raw
+        self.default = default
+        self.required = required
+        self.transform = transform
+
+    def extract_from_raw(self, raw):
+        try:
+            return raw[self.key_in_raw]
+        except KeyError:
+            if self.required:
+                raise ValueError('Field {!r} could not be found in raw data'.format(self))
+
+            return self.default
+
+    def try_transform(self, raw):
+        # TODO: real implementation
+        raw_value = self.extract_from_raw(raw)
+        value = raw_value
+
+        return value
+
+    @property
+    def name_in_model(self):
+        return '_' + self.name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        return getattr(instance, self.name_in_model, self.default)
+
+    def __set__(self, instance, value):
+        setattr(instance, self.name_in_model, self.try_transform(value))
+
+    def __delete__(self, instance):
+        raise AttributeError('Attribute deletion is not allowed')
 
 
 class ModelBase(abc.ABCMeta):
@@ -9,7 +53,7 @@ class ModelBase(abc.ABCMeta):
         parents = [base for base in bases if isinstance(base, ModelBase)]
         super_new = super().__new__
 
-        # Excludes Model class and other base classes from initialization
+        # Excludes Model class and othzer base classes from initialization
         if not parents:
             return super_new(cls, name, bases, attrs, **kwargs)
 
@@ -45,16 +89,12 @@ class ModelBase(abc.ABCMeta):
 
 class Model(metaclass=ModelBase):
 
-    @staticmethod
-    def build_from_raw(model, client, raw):
-        new_model = model()
-        fields = model._fields
-
-        for field in fields.values():
-            field_result = field.generate_from_raw(raw)
-            setattr(new_model, field.name, field_result)
-
-        return new_model
+    @classmethod
+    def build_as_dict(cls, raw):
+        return {
+            name: field.try_transform(raw)
+            for name, field in cls._fields.items()
+        }
 
     @property
     def _fields(self):
