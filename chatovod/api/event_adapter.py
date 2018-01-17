@@ -31,7 +31,7 @@ class Field:
 
     @property
     def name_in_model(self):
-        return Field.name_to_private_name(self.name)
+        return self.name_to_private_name(self.name)
 
     @classmethod
     def name_to_private_name(cls, name):
