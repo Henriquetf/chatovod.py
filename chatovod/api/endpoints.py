@@ -52,7 +52,7 @@ class APIEndpoint:
     ROOM_MESSAGES_FETCH  = Route(Method.GET, '/chat/loadLastMessages')
 
     # User
-    USER_CHAT_ENTER  = Route(Method.POST, '/chat/auth')
+    USER_CHAT_ENTER = Route(Method.POST, '/chat/auth')
     USER_CHAT_LEAVE = Route(Method.GET, '/chat/signOut')
     USER_AGE_SET    = Route(Method.POST, '/chat/setAge')
     USER_STATUS_SET = Route(Method.POST, '/chat/setStatus')
