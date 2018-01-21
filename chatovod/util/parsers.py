@@ -14,6 +14,10 @@ only_ban_entries = SoupStrainer('label')
 # Tatar seems to be the second most reliable option
 # since it is not used that much in Chatovod,
 # considering the default language URL redirection.
+# ### Example ###
+# 'Fluffy дат(тан) 12.31.2016 12.50 AM чаклы (120 minutes) '
+# 'модераторларга EvilModerator, комментарий: I banned you'
+
 parse_ban_message = re_compile(
     r'(?P<nickname>.{,25}?) дат\(тан\) '
     r'(?P<month>[0-9]+).(?P<day>[0-9]+).(?P<year>[0-9]+) '
