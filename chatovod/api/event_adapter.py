@@ -5,13 +5,14 @@ from collections import Iterable
 
 class Field:
 
-    __slots__ = ('name', 'model', 'key_in_raw', 'default', 'required')
+    __slots__ = ('name', 'model', 'key_in_raw', 'transform', 'default', 'required')
 
-    def __init__(self, key_in_raw, *, name=None, default=None, required=False):
-        self.name = name
+    def __init__(self, key_in_raw, name=None, default=None, required=False):
         self.key_in_raw = key_in_raw
+        self.name = name
         self.default = default
         self.required = required
+        self.transform = transform
 
     def extract_from_raw(self, raw):
         try:
@@ -31,11 +32,7 @@ class Field:
 
     @property
     def name_in_model(self):
-        return self.name_to_private_name(self.name)
-
-    @classmethod
-    def name_to_private_name(cls, name):
-        return '_' + name
+        return '_' + self.name
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -77,13 +74,13 @@ class EventAdapterBase(abc.ABCMeta):
         }
 
         for name, attr in attrs.items():
-            if isinstance(attr, Field) and name != 'type':
+            if isinstance(attr, Field):
                 field = attr
                 fields[name] = field
-                field.name = name
+                if field.name is None:
+                    field.name = name
                 field.model = new_class
 
-        new_class._adapts_keys = set([field.key_in_raw for field in fields.values()])
         new_class._fields = fields
 
         return new_class
@@ -91,10 +88,8 @@ class EventAdapterBase(abc.ABCMeta):
 
 class EventAdapter(metaclass=EventAdapterBase):
 
-    _key_for_event_type = 't'
-
-    def __init__(self, data, **kwargs):
-        self.state = kwargs.get('state')
+    def __init__(self, data, state=None):
+        self.state = state
         self._extra_data = self.find_extra_data(data)
 
         for field in self._fields.values():
@@ -104,8 +99,8 @@ class EventAdapter(metaclass=EventAdapterBase):
                 field.extract_from_raw(data))
 
     @classmethod
-    def extract_event_type_from_raw(cls, raw):
-        return raw.get(cls._key_for_event_type)
+    def get_event_type_from_raw(cls, raw):
+        return raw.get('t')
 
     @classmethod
     def create(cls, data, **kwargs):
@@ -130,11 +125,20 @@ class EventAdapter(metaclass=EventAdapterBase):
         }
 
     @property
-    def _fields(self):
-        return self.__class__._fields
+    @classmethod
+    def _adapts_keys(cls):
+        # TODO: cached_property
+        return set([field.key_in_raw for field in cls._fields.values()])
 
+    @property
+    @classmethod
+    def _fields(cls):
+        return cls.__class__._fields
+
+    @property
     @classmethod
     def _local_fields(cls):
+        # TODO: cached_property
         return {
             name: field
             for name, field in cls._fields.items()
