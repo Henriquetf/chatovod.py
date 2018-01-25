@@ -1,19 +1,15 @@
 from .event_adapter import EventAdapter, Field
 
 
-class TryAutoLogin(EventAdapter):
+class TryAutoLogin:
     type = 'tal'
 
 
-class SO(EventAdapter):
+class SO:
     type = 'so'
 
 
-class CLS(EventAdapter):
-    type = 'cls'
-
-
-class CPO(EventAdapter):
+class CPO:
     type = 'cpo'
 
 
@@ -158,10 +154,6 @@ class HasOlderMessages(WithRoom):
     type = 'hoe'
 
     value = Field('hasOlderEvents')
-
-
-class Random(EventAdapter):
-    type = 'rnd'
 
 
 class Action(EventAdapter):
