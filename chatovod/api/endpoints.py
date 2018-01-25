@@ -1,7 +1,9 @@
 from collections import namedtuple
 
 
-Route = namedtuple('Route', 'method path')
+class Route(namedtuple('Route', 'method path')):
+    def __call__(self, url, language=None):
+        return url + self.path
 
 
 class Method:
