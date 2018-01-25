@@ -32,7 +32,7 @@ class ChatState:
         emoji_groups = start_data['emoji_groups']
 
         client_info = start_data['client_info']
-        self._http._window_id = client_info['window_id']
+        self._http.window_id = client_info['window_id']
 
     def handle_user_enter_chat(self, event):
         user = User(data=event, state=self)
