@@ -6,12 +6,16 @@ from .endpoints import APIEndpoint as Endpoint
 
 class HTTPClient:
 
-    def __init__(self, *, loop=None):
+    def __init__(self, domain, secure=True, client=None, loop=None):
         self.loop = asyncio.get_event_loop() if loop is None else loop
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.session_id = None
         self.csrf_token = None
-        self.window_id = '0'
+        self._window_id = 0
+
+        self.domain = domain
+        self.secure = secure
+        self.url = self.make_url(self.domain, self.secure)
 
         # TODO: define the user-agent
         self.user_agent = ''
@@ -23,27 +27,25 @@ class HTTPClient:
             'User-Agent': self.user_agent
         }
 
+    @classmethod
+    def make_url(cls, domain, secure):
+        return ('https' if secure else 'http') + '://' + domain
+
     @asyncio.coroutine
     def chat_bind(self):
-        route = Endpoint.CHAT_BIND
-
-        return self.request(route)
+        return self.request(Endpoint.CHAT_BIND(self.url))
 
     @asyncio.coroutine
     def chat_info_fetch(self):
-        route = Endpoint.CHAT_INFO_FETCH
-
-        return self.request(route)
+        return self.request(Endpoint.CHAT_INFO_FETCH(self.url))
 
     @asyncio.coroutine
     def chat_session_fetch(self):
-        route = Endpoint.CHAT_SESSION_FETCH
-
-        return self.request(route)
+        return self.request(Endpoint.CHAT_SESSION_FETCH(self.url))
 
     @asyncio.coroutine
     def chat_bans_fetch(self):
-        route = Endpoint.CHAT_BANS_FETCH
+        route = Endpoint.CHAT_BANS_FETCH(self.url)
 
         return self.request(route)
 
@@ -78,7 +80,7 @@ class HTTPClient:
         return self.request(route)
 
     @asyncio.coroutine
-    def room_open(self):
+    def room_open(self, room_id):
         route = Endpoint.ROOM_OPEN
 
         return self.request(route)
@@ -96,7 +98,7 @@ class HTTPClient:
         return self.request(route)
 
     @asyncio.coroutine
-    def room_message_send(self):
+    def room_message_send(self, content, room_id):
         route = Endpoint.ROOM_MESSAGE_SEND
 
         return self.request(route)
@@ -120,16 +122,18 @@ class HTTPClient:
         return self.request(route)
 
     @asyncio.coroutine
-    def user_chat_enter(self, nickname, limit, captcha_sid, captcha_value):
+    def user_chat_enter(self, nickname, limit=80, captcha=None):
         route = Endpoint.USER_CHAT_ENTER
+        if captcha is None:
+            captcha = {}
 
         data = {
             'nick': nickname,
             'limit': limit,
             'wid': self.window_id,
             'csrf': self.csrf_token,
-            'captchaSid': captcha_sid,
-            'captchaValue': captcha_value
+            'captchaSid': captcha['sid'],
+            'captchaValue': captcha['value']
         }
 
         return self.request(route, data=data)

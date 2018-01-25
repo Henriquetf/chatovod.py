@@ -2,18 +2,21 @@ from .http import HTTPClient
 from collections import deque, OrderedDict
 
 
-class Chat:
+class ChatState:
 
     def __init__(self, client, http):
         self.client = client
-        self.http = http
+        self._http = http
 
     def reset(self):
         self._users = OrderedDict()
         self._rooms = OrderedDict()
         self._emojis = {}
         self._emojis_groups = []
-        self._window_id = 0
+
+    @property
+    def url(self):
+        return self._http.url
 
     def handle_start(self, data):
         start_data = StartData(data)
@@ -29,7 +32,7 @@ class Chat:
         emoji_groups = start_data['emoji_groups']
 
         client_info = start_data['client_info']
-        self._window_id = client_info['window_id']
+        self._http._window_id = client_info['window_id']
 
     def handle_user_enter_chat(self, event):
         user = User(data=event, state=self)
