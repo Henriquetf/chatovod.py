@@ -6,24 +6,23 @@ class Route(namedtuple('Route', 'method path')):
         return url + self.path
 
 
+FixedRoute = namedtuple('FixedRoute', 'method host path')
+
+
 class Method:
     GET = 'GET'
     POST = 'POST'
     HEAD = 'HEAD'
 
 
-class AdminEndpoint:
-    host = 'admin.chatovod.com'
-
-
 class AccountEndpoint:
     """Endpoints for account management."""
 
-    host = 'account.chatovod.com'
+    host = 'https://account.chatovod.com'
 
-    LOGIN_PAGE = Route(Method.HEAD, '/u/login')
-    LOGIN = Route(Method.POST, '/u/login.do')
-    LOGOUT = Route(Method.POST, '/u/logout')
+    LOGIN_PAGE = FixedRoute(Method.HEAD, host, '/u/login')
+    LOGIN = FixedRoute(Method.POST, host, '/u/login.do')
+    LOGOUT = FixedRoute(Method.POST, host, '/u/logout')
 
 
 class APIEndpoint:
