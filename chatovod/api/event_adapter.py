@@ -7,7 +7,7 @@ class Field:
 
     __slots__ = ('name', 'model', 'key_in_raw', 'transform', 'default', 'required')
 
-    def __init__(self, key_in_raw, name=None, default=None, required=False):
+    def __init__(self, key_in_raw, name=None, transform=None, default=None, required=False):
         self.key_in_raw = key_in_raw
         self.name = name
         self.default = default
