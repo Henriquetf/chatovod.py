@@ -3,9 +3,10 @@ from collections import namedtuple
 
 Route = namedtuple('Route', 'method url')
 
+
 class Path(namedtuple('Path', 'method path')):
-    def __call__(self, url):
-        return Route(self.method, url + self.path)
+    def with_base(self, base):
+        return Route(self.method, base + self.path)
 
 
 class Method:
@@ -17,11 +18,11 @@ class Method:
 class AccountEndpoint:
     """Endpoints for account management."""
 
-    host = 'https://account.chatovod.com'
+    BASE = 'https://account.chatovod.com'
 
-    LOGIN_PAGE = Route(Method.HEAD, host + '/u/login')
-    LOGIN = Route(Method.POST, host + '/u/login.do')
-    LOGOUT = Route(Method.POST, host + '/u/logout')
+    LOGIN_PAGE = Route(Method.HEAD, BASE + '/u/login')
+    LOGIN = Route(Method.POST, BASE + '/u/login.do')
+    LOGOUT = Route(Method.POST, BASE + '/u/logout')
 
 
 class APIEndpoint:
