@@ -2,7 +2,8 @@ import aiohttp
 import asyncio
 import json
 
-from .endpoints import APIEndpoint as APIE
+from .endpoints import APIEndpoint as Endpoints
+from .endpoints import MakeRoute
 
 
 class HTTPClient:
@@ -48,32 +49,32 @@ class HTTPClient:
 
     @asyncio.coroutine
     def chat_bind(self):
-        route = APIE.CHAT_BIND(self.url)
+        route = MakeRoute(Endpoints.CHAT_BIND, base=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_info(self):
-        route = APIE.CHAT_INFO_FETCH(self.url)
+        route = MakeRoute(Endpoints.CHAT_INFO_FETCH, self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_session(self):
-        route = APIE.CHAT_SESSION_FETCH(self.url)
+        route = MakeRoute(Endpoints.CHAT_SESSION_FETCH, base=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_bans(self):
-        route = APIE.CHAT_BANS_FETCH(self.url)
+        route = MakeRoute(Endpoints.CHAT_BANS_FETCH, base=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_rooms(self):
-        route = APIE.CHAT_ROOMS_FETCH(self.url)
+        route = MakeRoute(Endpoints.CHAT_ROOMS_FETCH, base=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def ban(self, nickname, messages=None, room_id=None, ban_time=None, comment=None):
-        route = APIE.CHAT_NICKNAME_BAN(self.url)
+        route = MakeRoute(Endpoints.CHAT_NICKNAME_BAN, base=self.url)
 
         data = {
             'nick': nickname,
@@ -87,7 +88,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def unban(self, entries):
-        route = APIE.CHAT_NICKNAME_UNBAN(self.url)
+        route = MakeRoute(Endpoints.CHAT_NICKNAME_UNBAN, base=self.url)
 
         data = {
             'entries': entries if isinstance(entries, (str, int)) else ','.join(ban_entries),
@@ -98,7 +99,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def moderate(self, nickname=None, message=None, room_id=None):
-        route = APIE.CHAT_NICKNAME_MODERATE(self.url)
+        route = MakeRoute(Endpoints.CHAT_NICKNAME_MODERATE, base=self.url)
 
         data = {
             'message': message,
@@ -110,7 +111,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def fetch_nickname_info(self, nicknames):
-        route = APIE.CHAT_NICKNAME_FETCH(self.url)
+        route = MakeRoute(Endpoints.CHAT_NICKNAME_FETCH, base=self.url)
 
         data = [('nick', nickname) for nickname in nicknames]
 
@@ -118,49 +119,49 @@ class HTTPClient:
 
     @asyncio.coroutine
     def open_room(self, room_id):
-        route = Endpoint.ROOM_OPEN
+        route = MakeRoute(Endpoints.ROOM_OPEN, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def open_room_private(self):
-        route = Endpoint.ROOM_PRIVATE_OPEN
+        route = MakeRoute(Endpoints.ROOM_PRIVATE_OPEN, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def close_room(self):
-        route = Endpoint.ROOM_CLOSE
+        route = MakeRoute(Endpoints.ROOM_CLOSE, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def send_message(self, content, room_id):
-        route = Endpoint.ROOM_MESSAGE_SEND
+        route = MakeRoute(Endpoints.ROOM_MESSAGE_SEND, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def read_messages(self):
-        route = Endpoint.ROOM_MESSAGES_READ
+        route = MakeRoute(Endpoints.ROOM_MESSAGES_READ, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def delete_messages(self):
-        route = Endpoint.ROOM_MESSAGES_DELETE
+        route = MakeRoute(Endpoints.ROOM_MESSAGES_DELETE, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_messages(self):
-        route = Endpoint.ROOM_MESSAGES_FETCH
+        route = MakeRoute(Endpoints.ROOM_MESSAGES_FETCH, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def enter_chat(self, nickname, limit=80, captcha=None):
-        route = Endpoint.USER_CHAT_ENTER
+        route = MakeRoute(Endpoints.USER_CHAT_ENTER, base=self.url)
         if captcha is None:
             captcha = {}
 
@@ -177,7 +178,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def leave_chat(self):
-        route = Endpoint.USER_CHAT_LEAVE
+        route = MakeRoute(Endpoints.USER_CHAT_LEAVE, base=self.url)
 
         params = {
             'wid': self.window_id,
@@ -188,18 +189,18 @@ class HTTPClient:
 
     @asyncio.coroutine
     def set_user_age(self):
-        route = Endpoint.USER_AGE_SET
+        route = MakeRoute(Endpoints.USER_AGE_SET, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def set_user_status(self):
-        route = Endpoint.USER_STATUS_SET
+        route = MakeRoute(Endpoints.USER_STATUS_SET, base=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def register(self):
-        route = Endpoint.USER_REGISTER
+        route = MakeRoute(Endpoints.USER_REGISTER, base=self.url)
 
         return self.request(route)

@@ -2,17 +2,10 @@ from collections import namedtuple
 
 
 Route = namedtuple('Route', 'method url')
+Path = namedtuple('Path', 'method path')
 
-
-class Path(namedtuple('Path', 'method path')):
-    def with_base(self, base):
-        return Route(self.method, base + self.path)
-
-
-class Method:
-    GET = 'GET'
-    POST = 'POST'
-    HEAD = 'HEAD'
+def MakeRoute(path, base):
+    return Route(method=path.method, url=base + path.path)
 
 
 class AccountEndpoint:
@@ -21,8 +14,8 @@ class AccountEndpoint:
     BASE = 'https://account.chatovod.com'
 
     LOGIN_PAGE = Route(Method.HEAD, BASE + '/u/login')
-    LOGIN = Route(Method.POST, BASE + '/u/login.do')
-    LOGOUT = Route(Method.POST, BASE + '/u/logout')
+    LOGIN = Route('POST', BASE + '/u/login.do')
+    LOGOUT = Route('POST', BASE + '/u/logout')
 
 
 class APIEndpoint:
@@ -30,31 +23,31 @@ class APIEndpoint:
     host = 'chatovod.com'
 
     # Chat
-    CHAT_BIND = Path(Method.GET, '/chat/bind')
-    CHAT_INFO_FETCH = Path(Method.GET, '/chat/start')
+    CHAT_BIND = Path('GET', '/chat/bind')
+    CHAT_INFO_FETCH = Path('GET', '/chat/start')
     CHAT_SESSION_FETCH = Path(Method.HEAD, '/')
-    CHAT_BANS_FETCH = Path(Method.GET, '/chat/load/banlist')
-    CHAT_ROOMS_FETCH = Path(Method.GET, '/chat/load/rooms')
+    CHAT_BANS_FETCH = Path('GET', '/chat/load/banlist')
+    CHAT_ROOMS_FETCH = Path('GET', '/chat/load/rooms')
 
     # Chat - Nickname
-    CHAT_NICKNAME_BAN      = Path(Method.POST, '/chat/ban')
-    CHAT_NICKNAME_UNBAN    = Path(Method.POST, '/chat/unban')
-    CHAT_NICKNAME_MODERATE = Path(Method.GET, '/chat/getChatNickLocalModInfo')
-    CHAT_NICKNAME_FETCH    = Path(Method.POST, '/chat/getChatNickLocal')
+    CHAT_NICKNAME_BAN      = Path('POST', '/chat/ban')
+    CHAT_NICKNAME_UNBAN    = Path('POST', '/chat/unban')
+    CHAT_NICKNAME_MODERATE = Path('GET', '/chat/getChatNickLocalModInfo')
+    CHAT_NICKNAME_FETCH    = Path('POST', '/chat/getChatNickLocal')
 
     # Room
-    ROOM_OPEN  = Path(Method.POST, '/chat/openRoom')
-    ROOM_PRIVATE_OPEN = Path(Method.POST, '/chat/openPrivate2')
-    ROOM_CLOSE = Path(Method.POST, '/chat/closeRoom')
+    ROOM_OPEN  = Path('POST', '/chat/openRoom')
+    ROOM_PRIVATE_OPEN = Path('POST', '/chat/openPrivate2')
+    ROOM_CLOSE = Path('POST', '/chat/closeRoom')
 
-    ROOM_MESSAGE_SEND    = Path(Method.POST, '/chat/send')
-    ROOM_MESSAGES_READ   = Path(Method.POST, '/chat/markChannelRead')
-    ROOM_MESSAGES_DELETE = Path(Method.POST, '/chat/deleteMessages')
-    ROOM_MESSAGES_FETCH  = Path(Method.GET, '/chat/loadLastMessages')
+    ROOM_MESSAGE_SEND    = Path('POST', '/chat/send')
+    ROOM_MESSAGES_READ   = Path('POST', '/chat/markChannelRead')
+    ROOM_MESSAGES_DELETE = Path('POST', '/chat/deleteMessages')
+    ROOM_MESSAGES_FETCH  = Path('GET', '/chat/loadLastMessages')
 
     # User
-    USER_CHAT_ENTER = Path(Method.POST, '/chat/auth')
-    USER_CHAT_LEAVE = Path(Method.GET, '/chat/signOut')
-    USER_AGE_SET    = Path(Method.POST, '/chat/setAge')
-    USER_STATUS_SET = Path(Method.POST, '/chat/setStatus')
-    USER_REGISTER   = Path(Method.GET, '/register')
+    USER_CHAT_ENTER = Path('POST', '/chat/auth')
+    USER_CHAT_LEAVE = Path('GET', '/chat/signOut')
+    USER_AGE_SET    = Path('POST', '/chat/setAge')
+    USER_STATUS_SET = Path('POST', '/chat/setStatus')
+    USER_REGISTER   = Path('GET', '/register')
