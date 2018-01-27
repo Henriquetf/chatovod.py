@@ -23,18 +23,15 @@ class HTTPClient:
         self.user_agent = ''
 
     @asyncio.coroutine
-    def request(self, route, **kwargs):
+    def request(self, route, headers=None, csrf_token=None, session_id=None, **kwargs):
         method = route.method
         url = route.url
 
-        headers = {
+        kwargs['headers'] = {
             'User-Agent': self.user_agent
         }
-
-        if 'headers' in kwargs:
-            headers = headers.update(kwargs.pop('headers'))
-
-        kwargs['headers'] = headers
+        if headers:
+            kwargs['headers'].update(headers)
 
         response = yield from self._session.request(method, url, **kwargs)
 
@@ -42,17 +39,22 @@ class HTTPClient:
             text = yield from response.text(encoding='utf-8')
             return text
 
+    def session_id_type(self):
+        return 'ssid' if self.secure else 'sid'
+
     @classmethod
     def make_url(cls, host, secure):
         return ('https' if secure else 'http') + '://' + host
 
     @asyncio.coroutine
     def chat_bind(self):
-        return self.request(APIE.CHAT_BIND(self.url))
+        route = APIE.CHAT_BIND(self.url)
+        return self.request(route)
 
     @asyncio.coroutine
     def fetch_info(self):
-        return self.request(APIE.CHAT_INFO_FETCH(self.url))
+        route = APIE.CHAT_INFO_FETCH(self.url)
+        return self.request(route)
 
     @asyncio.coroutine
     def fetch_session(self):
@@ -88,7 +90,7 @@ class HTTPClient:
         route = APIE.CHAT_NICKNAME_UNBAN(self.url)
 
         data = {
-            'entries': entries if isinstance(entries, str) else ','.join(ban_entries),
+            'entries': entries if isinstance(entries, (str, int)) else ','.join(ban_entries),
             'csrf': self.csrf_token
         }
 
@@ -167,8 +169,8 @@ class HTTPClient:
             'limit': limit,
             'wid': self.window_id,
             'csrf': self.csrf_token,
-            'captchaSid': captcha['sid'],
-            'captchaValue': captcha['value']
+            'captchaSid': captcha.sid,
+            'captchaValue': captcha.value,
         }
 
         return self.request(route, data=data)
