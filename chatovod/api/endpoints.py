@@ -5,7 +5,7 @@ Route = namedtuple('Route', 'method url')
 Path = namedtuple('Path', 'method path')
 
 def MakeRoute(path, base):
-    return Route(method=path.method, url=base + path.path)
+    return Route(method=path.method, url=(base + path.path))
 
 
 class AccountEndpoint:
@@ -25,7 +25,7 @@ class APIEndpoint:
     # Chat
     CHAT_BIND = Path('GET', '/chat/bind')
     CHAT_INFO_FETCH = Path('GET', '/chat/start')
-    CHAT_SESSION_FETCH = Path(Method.HEAD, '/')
+    CHAT_SESSION_FETCH = Path('HEAD', '/')
     CHAT_BANS_FETCH = Path('GET', '/chat/load/banlist')
     CHAT_ROOMS_FETCH = Path('GET', '/chat/load/rooms')
 

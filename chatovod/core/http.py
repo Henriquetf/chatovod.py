@@ -54,7 +54,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def fetch_info(self):
-        route = MakeRoute(Endpoints.CHAT_INFO_FETCH, self.url)
+        route = MakeRoute(Endpoints.CHAT_INFO_FETCH, base=self.url)
         return self.request(route)
 
     @asyncio.coroutine
