@@ -28,7 +28,7 @@ class ChatState:
             if event in ('set_option', 'chat_emojis', 'error'):
                 handler = getattr(self, 'handle_' + event, None)
 
-                handler(raw, start=True)
+                handler(raw)
             elif event == 'room_open':
                 room = self._create_room(raw)
                 self._add_room(room)
@@ -41,7 +41,7 @@ class ChatState:
             else:
                 log.info('Unhandled event "{}", transformed: {}'.format(_raw, transformed))
 
-    def handle_set_option(self, raw, start=False):
+    def handle_set_option(self, raw):
         option = raw['option']
         value = raw.get('value')
 
@@ -54,7 +54,7 @@ class ChatState:
         else:
             log.info('Unhandled option {} {}'.format(option, raw))
 
-    def handle_chat_emojis(self, raw, start=False):
+    def handle_chat_emojis(self, raw):
         self._emojis_base_path = raw['default_path']
         self._custom_emojis_base_path = raw.get('custom_path')
 
@@ -66,7 +66,7 @@ class ChatState:
             emoji = self._create_emoji(raw_emoji)
             self._add_emoji(emoji)
 
-    def handle_error(self, raw, start=False):
+    def handle_error(self, raw):
         ...
 
     def handle_room_open(self, event):
