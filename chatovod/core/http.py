@@ -53,9 +53,14 @@ class HTTPClient:
         return self.request(route)
 
     @asyncio.coroutine
-    def fetch_info(self):
+    def fetch_info(self, limit=20):
         route = MakeRoute(Endpoints.CHAT_INFO_FETCH, base=self.url)
-        return self.request(route)
+
+        params = {
+            'limit': limit
+        }
+
+        return self.request(route, params=params)
 
     @asyncio.coroutine
     def fetch_session(self):
@@ -118,40 +123,77 @@ class HTTPClient:
         return self.request(route, data=data)
 
     @asyncio.coroutine
-    def open_room(self, room_id):
+    def open_room(self, room_id, force_active=False, limit=20):
         route = MakeRoute(Endpoints.ROOM_OPEN, base=self.url)
+
+        params = {
+            'roomId': room_id,
+            'forceActive': force_active,
+            'wid': self.window_id,
+            'limit': limit,
+        }
 
         return self.request(route)
 
     @asyncio.coroutine
-    def open_room_private(self):
+    def open_room_private(self, nickname, limit=20):
         route = MakeRoute(Endpoints.ROOM_PRIVATE_OPEN, base=self.url)
 
-        return self.request(route)
+        params = {
+            'nick': nickname,
+            'limit': limit,
+            'wid': self.window_id,
+        }
+
+        return self.request(route, params=params)
 
     @asyncio.coroutine
     def close_room(self):
         route = MakeRoute(Endpoints.ROOM_CLOSE, base=self.url)
 
-        return self.request(route)
+        params = {
+            'roomId': room_id,
+            'wid': self.window_id,
+        }
+
+        return self.request(route, params=params)
 
     @asyncio.coroutine
-    def send_message(self, content, room_id):
+    def send_message(self, content, room_id, to=None):
         route = MakeRoute(Endpoints.ROOM_MESSAGE_SEND, base=self.url)
 
-        return self.request(route)
+        data = {
+            'csrf': self.csrf_token,
+            'msg': content,
+            'roomId': room_id,
+            'to': to,
+        }
+
+        return self.request(route, data=data)
 
     @asyncio.coroutine
-    def read_messages(self):
+    def read_messages(self, room_id, fromTime, toTime):
         route = MakeRoute(Endpoints.ROOM_MESSAGES_READ, base=self.url)
 
-        return self.request(route)
+        params = {
+            'channelId': room_id,
+            'fromTime': from_time,
+            'toTime': to_time,
+        }
+
+        return self.request(route, params=params)
 
     @asyncio.coroutine
-    def delete_messages(self):
+    def delete_messages(self, room_id, messages):
         route = MakeRoute(Endpoints.ROOM_MESSAGES_DELETE, base=self.url)
 
-        return self.request(route)
+        params = {
+            'csrf': self.csrf_token,
+            'messages': ','.join([str(v) for v in messages]),
+            'roomId': room_id,
+        }
+
+        return self.request(route, params=params)
 
     @asyncio.coroutine
     def fetch_messages(self):
@@ -160,18 +202,15 @@ class HTTPClient:
         return self.request(route)
 
     @asyncio.coroutine
-    def enter_chat(self, nickname, limit=80, captcha=None):
+    def enter_chat(self, nickname, limit=20, captcha={}):
         route = MakeRoute(Endpoints.USER_CHAT_ENTER, base=self.url)
-        if captcha is None:
-            captcha = {}
-
         data = {
             'nick': nickname,
             'limit': limit,
             'wid': self.window_id,
             'csrf': self.csrf_token,
-            'captchaSid': captcha.sid,
-            'captchaValue': captcha.value,
+            'captchaSid': captcha.get('sid'),
+            'captchaValue': captcha.get('value'),
         }
 
         return self.request(route, data=data)
