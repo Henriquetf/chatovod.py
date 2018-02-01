@@ -92,11 +92,13 @@ class HTTPClient:
         return self.request(*args, return_raw=True, **kwargs)
 
     @asyncio.coroutine
+    def close(self):
+        yield from self._session.close()
+
     def chat_bind(self):
         route = Route(path=Endpoints.CHAT_BIND, url=self.url)
         return self.request(route)
 
-    @asyncio.coroutine
     def fetch_info(self, limit=20):
         route = Route(path=Endpoints.CHAT_INFO_FETCH, url=self.url)
 
@@ -106,22 +108,18 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    @asyncio.coroutine
     def fetch_session(self):
         route = Route(path=Endpoints.CHAT_SESSION_FETCH, url=self.url)
         return self.request(route)
 
-    @asyncio.coroutine
     def fetch_bans(self):
         route = Route(path=Endpoints.CHAT_BANS_FETCH, url=self.url)
         return self.request(route)
 
-    @asyncio.coroutine
     def fetch_rooms(self):
         route = Route(path=Endpoints.CHAT_ROOMS_FETCH, url=self.url)
         return self.request(route)
 
-    @asyncio.coroutine
     def ban(self, nickname, messages=None,
             room_id=None, ban_time=None, comment=None):
         route = Route(path=Endpoints.CHAT_NICKNAME_BAN, url=self.url)
@@ -136,7 +134,6 @@ class HTTPClient:
 
         return self.request(route, data=data)
 
-    @asyncio.coroutine
     def unban(self, entries):
         route = Route(path=Endpoints.CHAT_NICKNAME_UNBAN, url=self.url)
 
@@ -147,7 +144,6 @@ class HTTPClient:
 
         return self.request(route, data=data)
 
-    @asyncio.coroutine
     def moderate(self, nickname=None, message=None, room_id=None):
         route = Route(path=Endpoints.CHAT_NICKNAME_MODERATE, url=self.url)
 
@@ -159,7 +155,6 @@ class HTTPClient:
 
         return self.request(route, data=data)
 
-    @asyncio.coroutine
     def fetch_nickname_info(self, nicknames):
         route = Route(path=Endpoints.CHAT_NICKNAME_FETCH, url=self.url)
 
@@ -167,7 +162,6 @@ class HTTPClient:
 
         return self.request(route, data=data)
 
-    @asyncio.coroutine
     def open_room(self, room_id, force_active=False, limit=20):
         route = Route(path=Endpoints.ROOM_OPEN, url=self.url)
 
@@ -180,7 +174,6 @@ class HTTPClient:
 
         return self.request(route)
 
-    @asyncio.coroutine
     def open_room_private(self, nickname, limit=20):
         route = Route(path=Endpoints.ROOM_PRIVATE_OPEN, url=self.url)
 
@@ -192,7 +185,6 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    @asyncio.coroutine
     def close_room(self):
         route = Route(path=Endpoints.ROOM_CLOSE, url=self.url)
 
@@ -203,7 +195,6 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    @asyncio.coroutine
     def send_message(self, content, room_id, to=None):
         route = Route(path=Endpoints.ROOM_MESSAGE_SEND, url=self.url)
 
@@ -216,7 +207,6 @@ class HTTPClient:
 
         return self.request(route, data=data)
 
-    @asyncio.coroutine
     def read_messages(self, room_id, fromTime, toTime):
         route = Route(path=Endpoints.ROOM_MESSAGES_READ, url=self.url)
 
@@ -228,7 +218,6 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    @asyncio.coroutine
     def delete_messages(self, room_id, messages):
         route = Route(path=Endpoints.ROOM_MESSAGES_DELETE, url=self.url)
 
@@ -240,13 +229,11 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    @asyncio.coroutine
     def fetch_messages(self):
         route = Route(path=Endpoints.ROOM_MESSAGES_FETCH, url=self.url)
 
         return self.request(route)
 
-    @asyncio.coroutine
     def enter_chat(self, nickname, limit=20, captcha={}):
         route = Route(path=Endpoints.USER_CHAT_ENTER, url=self.url)
         data = {
@@ -260,7 +247,6 @@ class HTTPClient:
 
         return self.request(route, data=data)
 
-    @asyncio.coroutine
     def leave_chat(self):
         route = Route(path=Endpoints.USER_CHAT_LEAVE, url=self.url)
 
@@ -271,19 +257,16 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    @asyncio.coroutine
     def set_user_age(self):
         route = Route(path=Endpoints.USER_AGE_SET, url=self.url)
 
         return self.request(route)
 
-    @asyncio.coroutine
     def set_user_status(self):
         route = Route(path=Endpoints.USER_STATUS_SET, url=self.url)
 
         return self.request(route)
 
-    @asyncio.coroutine
     def register(self):
         route = Route(path=Endpoints.USER_REGISTER, url=self.url)
 
@@ -301,11 +284,12 @@ class HTTPClient:
 
         yield from self._associate_account()
 
-    @asyncio.coroutine
+    def logout(self):
+        return self.raw_request(AccountEndpoint.LOGOUT)
+
     def _fetch_account_session(self):
         return self.raw_request(AccountEndpoint.LOGIN_PAGE)
 
-    @asyncio.coroutine
     def _post_login(self, email, password):
         params = {
             'csrf': self._filter_cookies(AccountEndpoint.BASE).get('csrf').value,
