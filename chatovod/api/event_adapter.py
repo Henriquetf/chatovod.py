@@ -3,12 +3,14 @@ ADAPTERS_MAP = {}
 
 # TODO: Rewrite again :(
 
+
 def transform_event(raw):
     event = raw.get('t')
     if event in ADAPTERS_MAP:
         return True, ADAPTERS_MAP[event](raw)
     else:
         return False, raw
+
 
 def adapter(func):
     func_name = func.__name__
@@ -24,6 +26,7 @@ def adapter(func):
 
     return func
 
+
 @adapter
 def adapt_so(data):
     return {
@@ -31,6 +34,7 @@ def adapt_so(data):
         'option': data.get('k'),
         'value': data.get('v'),
     }
+
 
 @adapter
 def adapt_cls(data):
@@ -42,6 +46,7 @@ def adapt_cls(data):
         'last_nickname': data.get('lastNick'),
     }
 
+
 @adapter
 def adapt_sl(data):
     return {
@@ -51,6 +56,7 @@ def adapt_sl(data):
         'default_path': data.get('dp'),
         'custom_path': data.get('p'),
     }
+
 
 @adapter
 def adapt_error(data):
@@ -63,6 +69,7 @@ def adapt_error(data):
         'timestamp': data.get('ts'),
     }
 
+
 @adapter
 def adapt_m(data):
     return {
@@ -74,6 +81,7 @@ def adapt_m(data):
         'actions': data.get('actions'),
     }
 
+
 @adapter
 def adapt_md(data):
     return {
@@ -81,6 +89,7 @@ def adapt_md(data):
         'messages': data['ts'],
         'room_id': data['r'],
     }
+
 
 @adapter
 def adapt_pmr(data):
@@ -90,6 +99,7 @@ def adapt_pmr(data):
         'until_ts': data.get('toTime'),
     }
 
+
 @adapter
 def adapt_ru(data):
     return {
@@ -98,6 +108,7 @@ def adapt_ru(data):
         'can_be_closed': data.get('closeable'),
         'display_user_flow': data.get('showEnterLeave'),
     }
+
 
 @adapter
 def adapt_ro(data):
@@ -111,12 +122,14 @@ def adapt_ro(data):
         'display_user_flow': data.get('showEnterLeave'),
     }
 
+
 @adapter
 def adapt_rc(data):
     return {
         't': 'room_close',
         'window_id': data.get('iwid', 0),
     }
+
 
 @adapter
 def adapt_tc(data):
@@ -126,6 +139,7 @@ def adapt_tc(data):
         'type': data['type'],
     }
 
+
 @adapter
 def adapt_hoe(data):
     return {
@@ -133,6 +147,7 @@ def adapt_hoe(data):
         'room_id': data['r'],
         'value': data['hasOlderEvents']
     }
+
 
 @adapter
 def adapt_ul(data):

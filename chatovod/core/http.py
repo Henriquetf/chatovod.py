@@ -55,7 +55,6 @@ class HTTPClient:
         if data:
             req_data['data'] = {k: v for k, v in data.items() if v is not None}
 
-
     @asyncio.coroutine
     def request(self, route, headers=None, return_raw=False, **kwargs):
         method = route.method
@@ -127,7 +126,8 @@ class HTTPClient:
         return self.request(route)
 
     @asyncio.coroutine
-    def ban(self, nickname, messages=None, room_id=None, ban_time=None, comment=None):
+    def ban(self, nickname, messages=None,
+            room_id=None, ban_time=None, comment=None):
         route = Route(path=Endpoints.CHAT_NICKNAME_BAN, url=self.url)
 
         data = {

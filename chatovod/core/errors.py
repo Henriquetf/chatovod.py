@@ -8,11 +8,14 @@ class ChatovodException(Exception):
 class HTTPException(ChatovodException):
     """ """
 
+
 class ConnectionError(HTTPException):
     """ """
 
+
 class ConnectionReset(ConnectionError):
     """ """
+
 
 class Forbidden(HTTPException):
     """ """

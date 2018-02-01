@@ -1,6 +1,3 @@
-
-
-
 class Message:
 
     def __init__(self, *, room, data):
@@ -20,8 +17,6 @@ class Message:
     def _handle_author(self, data):
         self.author = author
 
-
     @property
     def old(self):
         return self._old or self.fetched
-
