@@ -1,3 +1,4 @@
-from .api import endpoints, event_adapter, events, http, chat, states
-from .structures import abc, ban, chat, emoji, message, room, user
+from .api import endpoints, event_adapter, states
+from .core import chat, errors, http
+from .structures import abc, ban, emoji, message, room, user
 from .util import parsers, time
