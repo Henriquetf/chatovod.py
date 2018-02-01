@@ -7,6 +7,8 @@ from chatovod.api.endpoints import AccountEndpoint
 from chatovod.api.endpoints import APIEndpoint as Endpoints
 from chatovod.api.endpoints import make_route as MakeRoute
 
+from chatovod.core.errors import error_factory
+
 from chatovod import __version__
 
 
@@ -20,6 +22,7 @@ class HTTPClient:
 
         self.host = host
         self.secure = secure
+        # TODO: Use YARL for URL building
         self.url = self.make_url(host=self.host, secure=self.secure)
 
         # TODO: define the user-agent
@@ -71,14 +74,21 @@ class HTTPClient:
                 return response
 
             text = yield from response.text(encoding='utf-8')
+            is_json = response.content_type == 'application/json'
 
-            if response.content_type == 'application/json':
+            if is_json:
                 data = json.loads(text)
             else:
                 data = text
 
             if 200 <= response.status < 300:
+                if is_json:
+                    if isinstance(data, dict) and data.get('t') == 'error':
+                        error = error_factory(data)
+                        raise error
+
                 return data
+
         finally:
             # Prevents 'Unclosed connection' and 'Unclosed response'
             yield from response.release()
