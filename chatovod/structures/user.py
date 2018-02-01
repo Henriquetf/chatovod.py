@@ -50,3 +50,22 @@ class User:
         self.vip = event.get('vip', False)
         self.bold_nickname = event.get('b', False)
         self.bold_message = event.get('tb', False)
+
+
+class ModerationInfo:
+
+    def __init__(self, event):
+        self.message_ip = event.get('messageIp')
+        self.user_last_ip = event.get('lastIp')
+        self.user_location = event.get('lastIpGeo')
+        self.user_agent = event.get('lastUserAgent')
+        self.nickname_id = event.get('nickId')
+        self.account_id = event.get('accountId')
+        self.last_login = event.get('lastEnterToChat')
+        self.nickname_created_at = event.get('createdInChat')
+        self.registered_at = event.get('created')
+
+        self.account_service_name = event.get('accountType')
+        self.account_service_domain = event.get('accountTypeTitle')
+
+        self.banned = event.get('banned', False)
