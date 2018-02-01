@@ -2,8 +2,8 @@ import aiohttp
 import asyncio
 import json
 
-from .endpoints import APIEndpoint as Endpoints
-from .endpoints import MakeRoute
+from chatovod.api.endpoints import APIEndpoint as Endpoints
+from chatovod.api.endpoints import MakeRoute
 
 
 class HTTPClient:
@@ -18,7 +18,7 @@ class HTTPClient:
 
         self.host = host
         self.secure = secure
-        self.url = self.make_url(self.host, self.secure)
+        self.url = self.make_url(host=self.host, secure=self.secure)
 
         # TODO: define the user-agent
         self.user_agent = ''
@@ -113,7 +113,7 @@ class HTTPClient:
     def fetch_nickname_info(self, nicknames):
         route = MakeRoute(Endpoints.CHAT_NICKNAME_FETCH, base=self.url)
 
-        data = [('nick', nickname) for nickname in nicknames]
+        data = [('nick', nickname.lower()) for nickname in nicknames]
 
         return self.request(route, data=data)
 
