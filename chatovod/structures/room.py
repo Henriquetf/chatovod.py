@@ -16,3 +16,11 @@ class Room:
         self.display_user_flow = event.get('showEnterLeave', False)
 
         self.welcome_message = None
+
+
+class PublicRoom(Room):
+    ...
+
+
+class PrivateRoom(Room):
+    ...
