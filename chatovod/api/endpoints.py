@@ -17,6 +17,8 @@ class AccountEndpoint:
     LOGIN = Route('POST', BASE + '/u/login.do')
     LOGOUT = Route('POST', BASE + '/u/logout')
 
+    ASSOCIATE_ACCOUNT = Path('GET', '/widget/login')
+
 
 class APIEndpoint:
     """Endpoints for the Chatovod chat API."""
