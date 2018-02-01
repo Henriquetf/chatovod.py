@@ -2,8 +2,11 @@ import aiohttp
 import asyncio
 import json
 
+from chatovod.api.endpoints import AccountEndpoint
 from chatovod.api.endpoints import APIEndpoint as Endpoints
 from chatovod.api.endpoints import make_route as MakeRoute
+
+from chatovod import __version__
 
 
 class HTTPClient:
@@ -12,8 +15,6 @@ class HTTPClient:
         self.loop = asyncio.get_event_loop() if loop is None else loop
         self._session = aiohttp.ClientSession(loop=self.loop)
 
-        self.session_id = None
-        self.csrf_token = None
         self.window_id = 0
 
         self.host = host
@@ -21,10 +22,27 @@ class HTTPClient:
         self.url = self.make_url(host=self.host, secure=self.secure)
 
         # TODO: define the user-agent
-        self.user_agent = ''
+        user_agent = 'ChatovodBot (https://github.com/Coquetoon/chatovod.py {0}) Firefox/Bot'
+        self.user_agent = user_agent.format(__version__)
+
+    @property
+    def csrf_token(self):
+        return self._filter_cookies(self.url).get('csrf').value
+
+    @property
+    def session_id(self):
+        cookies = self._filter_cookies.get(self.session_id_type)
+        return cookies.get('ssid' if self.secure else 'sid').value
+
+    @property
+    def account_csrf_token(self):
+        return self._filter_cookies(AccountEndpoint.BASE).get('csrf').value
+
+    def _filter_cookies(self, request_url):
+        return self._session.cookie_jar.filter_cookies(request_url)
 
     @asyncio.coroutine
-    def request(self, route, headers=None, csrf_token=None, session_id=None, **kwargs):
+    def request(self, route, headers=None, csrf_token=None, session_id=None, return_raw=False, **kwargs):
         method = route.method
         url = route.url
 
@@ -37,11 +55,14 @@ class HTTPClient:
         response = yield from self._session.request(method, url, **kwargs)
 
         if 200 <= response.status < 300:
+            if return_raw:
+                return response
+
             text = yield from response.text(encoding='utf-8')
             return text
 
-    def session_id_type(self):
-        return 'ssid' if self.secure else 'sid'
+    def raw_request(self, *args, **kwargs):
+        return self.request(*args, return_raw=True, **kwargs)
 
     @classmethod
     def make_url(cls, host, secure):
@@ -243,3 +264,32 @@ class HTTPClient:
         route = MakeRoute(Endpoints.USER_REGISTER, base=self.url)
 
         return self.request(route)
+
+    @asyncio.coroutine
+    def login(self, email, password):
+        # Fetch CSRF token, necessary for posting the login, and session ID
+        yield from self._fetch_account_session()
+        # Post login
+        login_response = yield from self._post_login(email, password)
+
+        # TODO: Implement on login error
+
+        yield from self._associate_account()
+
+    @asyncio.coroutine
+    def _fetch_account_session(self):
+        return self.raw_request(AccountEndpoint.LOGIN_PAGE)
+
+    @asyncio.coroutine
+    def _post_login(self, email, password):
+        params = {
+            'csrf': self.account_csrf_token,
+            'login': email,
+            'password': password,
+        }
+
+        return self.raw_request(AccountEndpoint.LOGIN, params=params)
+
+    def _associate_account(self):
+        route = MakeRoute(AccountEndpoint.ASSOCIATE_ACCOUNT, base=self.url)
+        return self.raw_request(route, params={'n': 'ch'})
