@@ -42,19 +42,23 @@ class HTTPClient:
     def _filter_cookies(self, request_url):
         return self._session.cookie_jar.filter_cookies(request_url)
 
+    def _patch_request_data(self, req_data):
+        params = req_data.get('params')
+        data = req_data.get('data')
+        # aiohttp doesn't filter out None parameters
+        if params:
+            req_data['params'] = {k: v for k, v in params.items() if v is not None}
+
+        if data:
+            req_data['data'] = {k: v for k, v in data.items() if v is not None}
+
+
     @asyncio.coroutine
     def request(self, route, headers=None, return_raw=False, **kwargs):
         method = route.method
         url = route.url
 
-        params = kwargs.get('params')
-        data = kwargs.get('data')
-        # aiohttp doesn't filter out None parameters
-        if params:
-            kwargs['params'] = {k: v for k, v in params.items() if v is not None}
-
-        if data:
-            kwargs['data'] = {k: v for k, v in data.items() if v is not None}
+        self._patch_request_data(kwargs)
 
         kwargs['headers'] = {'User-Agent': self.user_agent}
         if headers:
