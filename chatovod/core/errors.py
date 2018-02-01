@@ -21,6 +21,10 @@ class Forbidden(HTTPException):
     """ """
 
 
+class UnavailableName(Forbidden):
+    """ """
+
+
 class InvalidLogin(HTTPException):
     """The provided login or password is incorrect."""
 
@@ -35,6 +39,9 @@ def error_factory(raw):
         else:
             return ConnectionError
     elif error_type == 'auth':
-        return Forbidden
+        if error['group'] == 'alreadySignedIn':
+            return UnavailableName
+        else:
+            return Forbidden
     else:
         return HTTPException
