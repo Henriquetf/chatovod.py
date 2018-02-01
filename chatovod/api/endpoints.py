@@ -13,7 +13,7 @@ class AccountEndpoint:
 
     BASE = 'https://account.chatovod.com'
 
-    LOGIN_PAGE = Route(Method.HEAD, BASE + '/u/login')
+    LOGIN_PAGE = Route('HEAD', BASE + '/u/login')
     LOGIN = Route('POST', BASE + '/u/login.do')
     LOGOUT = Route('POST', BASE + '/u/logout')
 
