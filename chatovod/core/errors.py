@@ -21,6 +21,10 @@ class Forbidden(HTTPException):
     """ """
 
 
+class InvalidLogin(HTTPException):
+    """The provided login or password is incorrect."""
+
+
 def error_factory(raw):
     error = adapt_error(raw)
     error_type = error['type']
