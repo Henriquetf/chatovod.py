@@ -7,7 +7,7 @@ from yarl import URL
 from chatovod.api.endpoints import AccountEndpoint, Route
 from chatovod.api.endpoints import APIEndpoint as Endpoints
 
-from chatovod.core.errors import error_factory
+from chatovod.core.errors import error_factory, InvalidLogin
 
 from chatovod import __version__
 
@@ -37,10 +37,6 @@ class HTTPClient:
     def session_id(self):
         cookies = self._filter_cookies.get(self.session_id_type)
         return cookies.get('ssid' if self.secure else 'sid').value
-
-    @property
-    def account_csrf_token(self):
-        return self._filter_cookies(AccountEndpoint.BASE).get('csrf').value
 
     def _filter_cookies(self, request_url):
         return self._session.cookie_jar.filter_cookies(request_url)
@@ -300,7 +296,8 @@ class HTTPClient:
         # Post login
         login_response = yield from self._post_login(email, password)
 
-        # TODO: Implement on login error
+        if login_response.headers['Location'] != 'https://account.chatovod.com/u/':
+            raise InvalidLogin()
 
         yield from self._associate_account()
 
@@ -311,12 +308,12 @@ class HTTPClient:
     @asyncio.coroutine
     def _post_login(self, email, password):
         params = {
-            'csrf': self.account_csrf_token,
+            'csrf': self._filter_cookies(AccountEndpoint.BASE).get('csrf').value,
             'login': email,
             'password': password,
         }
 
-        return self.raw_request(AccountEndpoint.LOGIN, params=params)
+        return self.raw_request(AccountEndpoint.LOGIN, params=params, allow_redirects=False)
 
     def _associate_account(self):
         route = Route(path=AccountEndpoint.ASSOCIATE_ACCOUNT, url=self.url)
