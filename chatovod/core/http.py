@@ -1,6 +1,7 @@
 import aiohttp
 import asyncio
 import json
+# import yarl
 
 from chatovod.api.endpoints import AccountEndpoint
 from chatovod.api.endpoints import APIEndpoint as Endpoints
@@ -61,12 +62,22 @@ class HTTPClient:
 
         response = yield from self._session.request(method, url, **kwargs)
 
-        if 200 <= response.status < 300:
+        try:
             if return_raw:
                 return response
 
             text = yield from response.text(encoding='utf-8')
-            return text
+
+            if response.content_type == 'application/json':
+                data = json.loads(text)
+            else:
+                data = text
+
+            if 200 <= response.status < 300:
+                return data
+        finally:
+            # Prevents 'Unclosed connection' and 'Unclosed response'
+            yield from response.release()
 
     def raw_request(self, *args, **kwargs):
         return self.request(*args, return_raw=True, **kwargs)
