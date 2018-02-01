@@ -2,6 +2,47 @@ from .http import HTTPClient
 from collections import deque, OrderedDict
 
 
+def _make_room_patch(raw):
+    return {
+        'room': raw,
+        'messages': [],
+        'errors': [],
+        'has_older_events': None
+    }
+
+def transform_start(data):
+    patch = {
+        'options': [],
+        'chat_emojis': [],
+        'rooms': {},
+    }
+
+    for _raw in data:
+        transformed, raw = transform_event(_raw)
+        event = raw.get('t')
+
+        if 'room_id' in raw:
+            room_id = raw['room_id']
+            room = patch['rooms'].get(room_id)
+
+        if event == 'set_option':
+            patch['options'].append(raw)
+        elif event == 'chat_emojis':
+            patch['chat_emojis'].append(raw)
+        elif event == 'room_open':
+            patch['rooms'][room_id] = _make_room_patch(raw)
+        elif event == 'message':
+            room['messages'].append(raw)
+        elif event == 'error':
+            room['errors'].append(raw)
+        elif event == 'has_older_events':
+            room['has_older_events'] = raw['value']
+        else:
+            print('Unhandled event "{}", transformed: {}'.format(_raw, transformed))
+
+    return patch
+
+
 class ChatState:
 
     def __init__(self, client, http):
@@ -11,42 +52,52 @@ class ChatState:
     def reset(self):
         self._users = OrderedDict()
         self._rooms = OrderedDict()
-        self._emojis = {}
+        self._emojis = []
         self._emojis_groups = []
+        self._emojis_base_path = None
+        self._custom_emojis_base_path = None
 
     @property
     def url(self):
         return self._http.url
 
     def handle_start(self, data):
-        start_data = StartData(data)
+        self.handle_chat_emojis(data['chat_emojis'])
 
-        for user_data in start_data['users']:
-            user = User(data=user_data, state=self)
+        for option in data['options']:
+            self.handle_set_option(option)
 
-        for room_data in start_data['rooms']:
-            room = Room(data=room_data, state=self)
+        for room_info in data['rooms']:
+            room_data = room_info['room']
+            room = self._create_room(room_data)
             self._add_room(room)
 
-        emojis = start_data['emojis']
-        emoji_groups = start_data['emoji_groups']
+    def handle_set_option(self, raw):
+        option = raw['option']
+        value = raw.get('value')
 
-        client_info = start_data['client_info']
-        self._http.window_id = client_info['window_id']
+        if option == 'nick':
+            set_nickname(value)
+        elif option == 'wid':
+            set_window_id(value)
+        elif option == 'signedIn':
+            set_signedIn(value)
+        else:
+            log.info('Unhandled option {} {}'.format(option, raw))
 
-    def handle_user_enter_chat(self, event):
-        user = User(data=event, state=self)
-        self._add_user(user)
+    def handle_chat_emojis(self, raw):
+        self._emojis_base_path = raw['default_path']
+        self._custom_emojis_base_path = raw.get('custom_path')
 
-        self.dispatch('user_enter_chat', user)
+        for raw_group in raw['groups']:
+            group = self._create_emoji_group(raw_group)
+            self._add_emoji_group(group)
 
-    def handle_user_leave_chat(self, event):
-        user = self.get_user(event['nickname'])
-        self._remove_user(user)
+        for raw_emoji in raw['emojis']:
+            emoji = self._create_emoji(raw_emoji)
+            self._add_emoji(emoji)
 
-        self.dispatch('user_leave_chat', user)
-
-    def handle_user_enter_room(self, event):
+    def handle_room_open(self, event):
         pass
 
     def _get_user(self, nickname):
