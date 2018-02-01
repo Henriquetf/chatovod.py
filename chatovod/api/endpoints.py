@@ -19,7 +19,7 @@ class AccountEndpoint:
 
     LOGIN_PAGE = _Route('HEAD', BASE + '/u/login')
     LOGIN = _Route('POST', BASE + '/u/login.do')
-    LOGOUT = _Route('POST', BASE + '/u/logout')
+    LOGOUT = _Route('GET', BASE + '/u/logout')
 
     ASSOCIATE_ACCOUNT = Path('GET', '/widget/login')
 
