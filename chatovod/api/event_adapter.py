@@ -1,10 +1,17 @@
 
 ADAPTERS_MAP = {}
 
+def transform_event(raw):
+    event = raw.get('t')
+    if event in ADAPTERS_MAP:
+        return True, ADAPTERS_MAP[event](raw)
+    else:
+        return False, raw
+
 def adapter(func):
     func_name = func.__name__
     if not func_name.startswith('adapt_'):
-        raise ValueError('{} must start with "adapt_"', func_name)
+        raise ValueError('function {!r} must start with "adapt_"'.format(func_name))
 
     event = func_name[6:]
 
@@ -55,30 +62,6 @@ def adapt_error(data):
     }
 
 @adapter
-def adapt_mi(data):
-    return {
-        't': 'moderate_info',
-
-        'message_ip': data.get('messageIp'),
-        'last_ip': data.get('lastIp'),
-
-        'location': data.get('lastIpGeo'),
-        'user_agent': data.get('lastUserAgent'),
-
-        'nick_id': data.get('nickId'),
-        'account_id': data.get('accountId'),
-
-        'last_login': data.get('lastEnterToChat'),
-        'nickname_created_at': data.get('createdInChat'),
-        'registered_timestamp': data.get('created'),
-
-        'account_service_name': data.get('accountType'),
-        'account_service_domain': data.get('accountTypeTitle'),
-
-        'banned': data.get('banned', False),
-    }
-
-@adapter
 def adapt_m(data):
     return {
         't': 'message',
@@ -118,6 +101,7 @@ def adapt_ru(data):
 def adapt_ro(data):
     return {
         't': 'room_open',
+        'room_id': data['r'],
         'type': data.get('channelType'),
         'set_focus': data.get('active'),
         'name': data.get('title'),
@@ -144,6 +128,7 @@ def adapt_tc(data):
 def adapt_hoe(data):
     return {
         't': 'has_older_events',
+        'room_id': data['r'],
         'value': data['hasOlderEvents']
     }
 
