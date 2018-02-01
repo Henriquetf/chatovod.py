@@ -3,7 +3,7 @@ import asyncio
 import json
 
 from chatovod.api.endpoints import APIEndpoint as Endpoints
-from chatovod.api.endpoints import MakeRoute
+from chatovod.api.endpoints import make_route as MakeRoute
 
 
 class HTTPClient:

@@ -4,7 +4,7 @@ from collections import namedtuple
 Route = namedtuple('Route', 'method url')
 Path = namedtuple('Path', 'method path')
 
-def MakeRoute(path, base):
+def make_route(path, base):
     return Route(method=path.method, url=(base + path.path))
 
 
