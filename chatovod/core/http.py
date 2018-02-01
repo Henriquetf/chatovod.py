@@ -1,11 +1,11 @@
 import aiohttp
 import asyncio
 import json
-# import yarl
 
-from chatovod.api.endpoints import AccountEndpoint
+from yarl import URL
+
+from chatovod.api.endpoints import AccountEndpoint, Route
 from chatovod.api.endpoints import APIEndpoint as Endpoints
-from chatovod.api.endpoints import make_route as MakeRoute
 
 from chatovod.core.errors import error_factory
 
@@ -22,8 +22,9 @@ class HTTPClient:
 
         self.host = host
         self.secure = secure
-        # TODO: Use YARL for URL building
-        self.url = self.make_url(host=self.host, secure=self.secure)
+
+        scheme = 'https' if secure else 'http'
+        self.url = URL.build(scheme=scheme, host=host)
 
         # TODO: define the user-agent
         user_agent = 'ChatovodBot (https://github.com/Coquetoon/chatovod.py {0}) Firefox/Bot'
@@ -96,18 +97,14 @@ class HTTPClient:
     def raw_request(self, *args, **kwargs):
         return self.request(*args, return_raw=True, **kwargs)
 
-    @classmethod
-    def make_url(cls, host, secure):
-        return ('https' if secure else 'http') + '://' + host
-
     @asyncio.coroutine
     def chat_bind(self):
-        route = MakeRoute(Endpoints.CHAT_BIND, base=self.url)
+        route = Route(path=Endpoints.CHAT_BIND, url=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_info(self, limit=20):
-        route = MakeRoute(Endpoints.CHAT_INFO_FETCH, base=self.url)
+        route = Route(path=Endpoints.CHAT_INFO_FETCH, url=self.url)
 
         params = {
             'limit': limit
@@ -117,22 +114,22 @@ class HTTPClient:
 
     @asyncio.coroutine
     def fetch_session(self):
-        route = MakeRoute(Endpoints.CHAT_SESSION_FETCH, base=self.url)
+        route = Route(path=Endpoints.CHAT_SESSION_FETCH, url=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_bans(self):
-        route = MakeRoute(Endpoints.CHAT_BANS_FETCH, base=self.url)
+        route = Route(path=Endpoints.CHAT_BANS_FETCH, url=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def fetch_rooms(self):
-        route = MakeRoute(Endpoints.CHAT_ROOMS_FETCH, base=self.url)
+        route = Route(path=Endpoints.CHAT_ROOMS_FETCH, url=self.url)
         return self.request(route)
 
     @asyncio.coroutine
     def ban(self, nickname, messages=None, room_id=None, ban_time=None, comment=None):
-        route = MakeRoute(Endpoints.CHAT_NICKNAME_BAN, base=self.url)
+        route = Route(path=Endpoints.CHAT_NICKNAME_BAN, url=self.url)
 
         data = {
             'nick': nickname,
@@ -146,7 +143,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def unban(self, entries):
-        route = MakeRoute(Endpoints.CHAT_NICKNAME_UNBAN, base=self.url)
+        route = Route(path=Endpoints.CHAT_NICKNAME_UNBAN, url=self.url)
 
         data = {
             'entries': entries if isinstance(entries, (str, int)) else ','.join(ban_entries),
@@ -157,7 +154,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def moderate(self, nickname=None, message=None, room_id=None):
-        route = MakeRoute(Endpoints.CHAT_NICKNAME_MODERATE, base=self.url)
+        route = Route(path=Endpoints.CHAT_NICKNAME_MODERATE, url=self.url)
 
         data = {
             'message': message,
@@ -169,7 +166,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def fetch_nickname_info(self, nicknames):
-        route = MakeRoute(Endpoints.CHAT_NICKNAME_FETCH, base=self.url)
+        route = Route(path=Endpoints.CHAT_NICKNAME_FETCH, url=self.url)
 
         data = [('nick', nickname.lower()) for nickname in nicknames]
 
@@ -177,7 +174,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def open_room(self, room_id, force_active=False, limit=20):
-        route = MakeRoute(Endpoints.ROOM_OPEN, base=self.url)
+        route = Route(path=Endpoints.ROOM_OPEN, url=self.url)
 
         params = {
             'roomId': room_id,
@@ -190,7 +187,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def open_room_private(self, nickname, limit=20):
-        route = MakeRoute(Endpoints.ROOM_PRIVATE_OPEN, base=self.url)
+        route = Route(path=Endpoints.ROOM_PRIVATE_OPEN, url=self.url)
 
         params = {
             'nick': nickname,
@@ -202,7 +199,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def close_room(self):
-        route = MakeRoute(Endpoints.ROOM_CLOSE, base=self.url)
+        route = Route(path=Endpoints.ROOM_CLOSE, url=self.url)
 
         params = {
             'roomId': room_id,
@@ -213,7 +210,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def send_message(self, content, room_id, to=None):
-        route = MakeRoute(Endpoints.ROOM_MESSAGE_SEND, base=self.url)
+        route = Route(path=Endpoints.ROOM_MESSAGE_SEND, url=self.url)
 
         data = {
             'csrf': self.csrf_token,
@@ -226,7 +223,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def read_messages(self, room_id, fromTime, toTime):
-        route = MakeRoute(Endpoints.ROOM_MESSAGES_READ, base=self.url)
+        route = Route(path=Endpoints.ROOM_MESSAGES_READ, url=self.url)
 
         params = {
             'channelId': room_id,
@@ -238,7 +235,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def delete_messages(self, room_id, messages):
-        route = MakeRoute(Endpoints.ROOM_MESSAGES_DELETE, base=self.url)
+        route = Route(path=Endpoints.ROOM_MESSAGES_DELETE, url=self.url)
 
         params = {
             'csrf': self.csrf_token,
@@ -250,13 +247,13 @@ class HTTPClient:
 
     @asyncio.coroutine
     def fetch_messages(self):
-        route = MakeRoute(Endpoints.ROOM_MESSAGES_FETCH, base=self.url)
+        route = Route(path=Endpoints.ROOM_MESSAGES_FETCH, url=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def enter_chat(self, nickname, limit=20, captcha={}):
-        route = MakeRoute(Endpoints.USER_CHAT_ENTER, base=self.url)
+        route = Route(path=Endpoints.USER_CHAT_ENTER, url=self.url)
         data = {
             'nick': nickname,
             'limit': limit,
@@ -270,7 +267,7 @@ class HTTPClient:
 
     @asyncio.coroutine
     def leave_chat(self):
-        route = MakeRoute(Endpoints.USER_CHAT_LEAVE, base=self.url)
+        route = Route(path=Endpoints.USER_CHAT_LEAVE, url=self.url)
 
         params = {
             'wid': self.window_id,
@@ -281,19 +278,19 @@ class HTTPClient:
 
     @asyncio.coroutine
     def set_user_age(self):
-        route = MakeRoute(Endpoints.USER_AGE_SET, base=self.url)
+        route = Route(path=Endpoints.USER_AGE_SET, url=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def set_user_status(self):
-        route = MakeRoute(Endpoints.USER_STATUS_SET, base=self.url)
+        route = Route(path=Endpoints.USER_STATUS_SET, url=self.url)
 
         return self.request(route)
 
     @asyncio.coroutine
     def register(self):
-        route = MakeRoute(Endpoints.USER_REGISTER, base=self.url)
+        route = Route(path=Endpoints.USER_REGISTER, url=self.url)
 
         return self.request(route)
 
@@ -323,5 +320,5 @@ class HTTPClient:
         return self.raw_request(AccountEndpoint.LOGIN, params=params)
 
     def _associate_account(self):
-        route = MakeRoute(AccountEndpoint.ASSOCIATE_ACCOUNT, base=self.url)
+        route = Route(path=AccountEndpoint.ASSOCIATE_ACCOUNT, url=self.url)
         return self.raw_request(route, params={'n': 'ch'})

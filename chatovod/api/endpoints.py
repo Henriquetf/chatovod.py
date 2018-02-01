@@ -1,11 +1,14 @@
 from collections import namedtuple
 
 
-Route = namedtuple('Route', 'method url')
 Path = namedtuple('Path', 'method path')
+_Route = namedtuple('Route', 'method url')
 
-def make_route(path, base):
-    return Route(method=path.method, url=(base + path.path))
+def Route(path, url):
+    return _Route(
+        method=path.method,
+        url=url.with_path(path.path),
+    )
 
 
 class AccountEndpoint:
@@ -13,9 +16,9 @@ class AccountEndpoint:
 
     BASE = 'https://account.chatovod.com'
 
-    LOGIN_PAGE = Route('HEAD', BASE + '/u/login')
-    LOGIN = Route('POST', BASE + '/u/login.do')
-    LOGOUT = Route('POST', BASE + '/u/logout')
+    LOGIN_PAGE = _Route('HEAD', BASE + '/u/login')
+    LOGIN = _Route('POST', BASE + '/u/login.do')
+    LOGOUT = _Route('POST', BASE + '/u/logout')
 
     ASSOCIATE_ACCOUNT = Path('GET', '/widget/login')
 
