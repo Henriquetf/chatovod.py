@@ -26,7 +26,6 @@ class HTTPClient:
         scheme = 'https' if secure else 'http'
         self.url = URL.build(scheme=scheme, host=host)
 
-        # TODO: define the user-agent
         user_agent = 'ChatovodBot (https://github.com/Coquetoon/chatovod.py {0}) Firefox/Bot'
         self.user_agent = user_agent.format(__version__)
 
