@@ -1,6 +1,8 @@
 
 ADAPTERS_MAP = {}
 
+# TODO: Rewrite again :(
+
 def transform_event(raw):
     event = raw.get('t')
     if event in ADAPTERS_MAP:
@@ -54,9 +56,9 @@ def adapt_sl(data):
 def adapt_error(data):
     return {
         't': 'error',
+        'type': data.get('et'),
+        'group': data.get('est'),
         'description': data.get('error'),
-        'group': data.get('et'),
-        'category': data.get('est'),
         'room_id': data.get('r'),
         'timestamp': data.get('ts'),
     }
