@@ -4,18 +4,17 @@ import json
 
 from yarl import URL
 
+from chatovod import __version__
 from chatovod.api.endpoints import AccountEndpoint, Route
 from chatovod.api.endpoints import APIEndpoint as Endpoints
 
-from chatovod.core.errors import error_factory, InvalidLogin
-
-from chatovod import __version__
+from .errors import error_factory, InvalidLogin
 
 
 class HTTPClient:
 
     def __init__(self, host, secure=True, client=None, loop=None):
-        self.loop = asyncio.get_event_loop() if loop is None else loop
+        self.loop = loop if loop else asyncio.get_event_loop()
         self._session = aiohttp.ClientSession(loop=self.loop)
 
         self.window_id = 0
