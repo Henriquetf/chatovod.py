@@ -16,14 +16,17 @@ class Client:
         self.host = host
         self.loop = loop if loop else asyncio.get_event_loop()
         self.http = HTTPClient(host=self.host, loop=loop)
-        self._state = ChatState(client=self, http=self.http)
+        self.chat = ChatState(client=self, http=self.http, loop=self.loop)
 
     def run(self, *args, **kwargs):
-
         loop = self.loop
 
         task = loop.create_task(self.start(*args, **kwargs))
-        task.add_done_callback(lambda f: loop.stop())
+
+        def on_done(future):
+            loop.close()
+
+        task.add_done_callback(on_done)
 
         try:
             loop.run_forever()
@@ -47,11 +50,17 @@ class Client:
     def init(self):
         yield from self.http.fetch_session()
         yield from self.http.fetch_info()
+        self.chat.listen()
+
+        # while True:
+            # ...
 
     @asyncio.coroutine
     def close(self):
+        # Only if signed in
+        # yield from self.http.leave_chat()
         # TODO: Only if logged in
-        yield from self.http.logout()
+        # yield from self.http.logout()
 
         yield from self.http.close()
 
