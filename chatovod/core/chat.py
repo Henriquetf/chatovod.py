@@ -111,10 +111,10 @@ class EventHandler:
         for _raw in data:
             transformed, raw = transform_event(_raw)
             event = raw.get('t')
+            handle_name = 'handle_' + event
 
-            if event in ('set_option', 'chat_emojis', 'error'):
-                handler = getattr(self, 'handle_' + event, None)
-
+            if event in ('set_option', 'chat_emojis', 'error') and hasattr(self, handle_name):
+                handler = getattr(self, handle_name)
                 handler(raw)
             elif event == 'room_open':
                 room = self._create_room(raw)
