@@ -1,6 +1,6 @@
 import asyncio
 
-from chatovod.core.chat import ChatState
+from chatovod.core.chat import Chat
 from chatovod.core.http import HTTPClient
 
 
@@ -16,7 +16,7 @@ class Client:
         self.host = host
         self.loop = loop if loop else asyncio.get_event_loop()
         self.http = HTTPClient(host=self.host, loop=loop)
-        self.chat = ChatState(client=self, http=self.http, loop=self.loop)
+        self.chat = Chat(client=self, http=self.http, loop=self.loop)
 
     def run(self, *args, **kwargs):
         loop = self.loop
@@ -52,8 +52,8 @@ class Client:
         yield from self.http.fetch_info()
         self.chat.listen()
 
-        # while True:
-            # ...
+        while True:
+            yield from asyncio.sleep(10)
 
     @asyncio.coroutine
     def close(self):
