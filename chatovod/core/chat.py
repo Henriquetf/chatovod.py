@@ -7,6 +7,50 @@ from .errors import ConnectionReset, ConnectionError
 from .http import HTTPClient
 
 
+class Chat:
+
+    def __init__(self, client, http, loop):
+        self.client = client
+        self._http = http
+        self.loop = loop
+        self._event_listener = EventListener(chat=self)
+        self._event_handler = EventHandler(chat=self)
+
+    def listen(self):
+        self._event_listener.start()
+
+    def reset(self):
+        self._users = OrderedDict()
+        self._rooms = OrderedDict()
+        self._emojis = []
+        self._emojis_groups = []
+        self._emojis_base_path = None
+        self._custom_emojis_base_path = None
+
+    @property
+    def url(self):
+        return self._http.url
+
+    def _get_user(self, nickname):
+        return self.users[nickname.lower()]
+
+    def _add_user(self, user):
+        nickname = user.nickname.lower()
+        self._users[nickname] = user
+
+    def _remove_user(self, user):
+        return self._users.pop(user.nickname.lower())
+
+    def _get_room(self, room_id):
+        return self._rooms.get(room_id)
+
+    def _add_room(self, room):
+        self._rooms[room.id] = room
+
+    def _remove_room(self, room):
+        self._rooms.pop(room.id)
+
+
 class EventListener(threading.Thread):
 
     def __init__(self, chat, *args, **kwargs):
@@ -17,7 +61,6 @@ class EventListener(threading.Thread):
 
     def run(self):
         while not self._closed.is_set():
-            print('listening')
             loop = self.chat.loop
             coro = self.chat._http.chat_bind()
             future = asyncio.run_coroutine_threadsafe(coro, loop=loop)
@@ -41,28 +84,28 @@ class EventListener(threading.Thread):
         return f.result()
 
 
-class ChatState:
+class EventHandler:
 
-    def __init__(self, client, http, loop):
-        self.client = client
-        self._http = http
-        self.loop = loop
-        self._event_listener = EventListener(chat=self)
+    def __init__(self, chat):
+        self.chat = chat
 
-    def listen(self):
-        self._event_listener.start()
+    def _(self, data):
+        event = data.get('t')
 
-    def reset(self):
-        self._users = OrderedDict()
-        self._rooms = OrderedDict()
-        self._emojis = []
-        self._emojis_groups = []
-        self._emojis_base_path = None
-        self._custom_emojis_base_path = None
-
-    @property
-    def url(self):
-        return self._http.url
+        if issubclass(event, str):
+            try:
+                handler = getattr(self, 'handle_' + event)
+            except AttributeError:
+                # log.info('Unhandled event {}')
+                ...
+            else:
+                handler(data)
+        else:
+            try:
+                self._handle_typeless_event(data)
+            except AttributeError:
+                # log.info('')
+                ...
 
     def _handle_start(self, data):
         for _raw in data:
@@ -115,22 +158,3 @@ class ChatState:
 
     def handle_room_open(self, event):
         pass
-
-    def _get_user(self, nickname):
-        return self.users[nickname.lower()]
-
-    def _add_user(self, user):
-        nickname = user.nickname.lower()
-        self._users[nickname] = user
-
-    def _remove_user(self, user):
-        return self._users.pop(user.nickname.lower())
-
-    def _get_room(self, room_id):
-        return self._rooms.get(room_id)
-
-    def _add_room(self, room):
-        self._rooms[room.id] = room
-
-    def _remove_room(self, room):
-        self._rooms.pop(room.id)
