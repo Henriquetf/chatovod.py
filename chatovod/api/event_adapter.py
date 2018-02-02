@@ -1,169 +1,175 @@
 
 ADAPTERS_MAP = {}
 
-# TODO: Rewrite again :(
 
-
-def transform_event(raw):
-    event = raw.get('t')
-    if event in ADAPTERS_MAP:
-        return True, ADAPTERS_MAP[event](raw)
-    else:
-        return False, raw
-
-
-def adapter(func):
-    func_name = func.__name__
-    if not func_name.startswith('adapt_'):
-        raise ValueError('function {!r} must start with "adapt_"'.format(func_name))
-
-    event = func_name[6:]
-
-    if not event:
-        raise ValueError('Event type cannot be empty')
-
-    ADAPTERS_MAP[event] = func
-
-    return func
-
-
-@adapter
-def adapt_so(data):
+def transform(data, transforms):
     return {
-        't': 'set_option',
-        'option': data.get('k'),
-        'value': data.get('v'),
+        transforms.get(k, k): v
+        for k, v in data.items()
     }
 
 
-@adapter
-def adapt_cls(data):
-    return {
-        't': 'cls',
-        'email': data.get('accountName'),
-        'account_type': data.get('accountType'),
-        'user_group': data.get('accountGroup'),
-        'last_nickname': data.get('lastNick'),
+class EventAdapterMeta(type):
+
+    def __new__(cls, name, bases, namespace, **kwds):
+        inst = type.__new__(cls, name, bases, namespace)
+
+        event_type = namespace.get('type')
+        if event_type is not None:
+            ADAPTERS_MAP[event_type] = inst
+
+        return inst
+
+
+class EventAdapter(metaclass=EventAdapterMeta):
+
+    @classmethod
+    def adapt(cls, data):
+        transformed = transform(data, cls.transforms)
+
+        # Patch the type of the event
+        try:
+            new_type = getattr(cls, 'new_type')
+        except AttributeError:
+            pass
+        else:
+            transformed['t'] = new_type
+
+        return transformed
+
+
+class SetOptionAdapter(EventAdapter):
+    type = 'so'
+    new_type = 'set_option'
+    transforms = {
+        'k': 'option',
+        'v': 'value',
     }
 
 
-@adapter
-def adapt_sl(data):
-    return {
-        't': 'chat_emojis',
-        'emojis': data.get('smileys'),
-        'groups': data.get('cats'),
-        'default_path': data.get('dp'),
-        'custom_path': data.get('p'),
+class CLSAdapter(EventAdapter):
+    type = 'cls'
+    transforms = {
+        'accountName': 'email',
+        'accountType': 'account_type',
+        'accountGroup': 'user_group',
+        'lastNick': 'last_nickname',
     }
 
 
-@adapter
-def adapt_error(data):
-    return {
-        't': 'error',
-        'type': data.get('et'),
-        'group': data.get('est'),
-        'description': data.get('error'),
-        'room_id': data.get('r'),
-        'timestamp': data.get('ts'),
+class ChatEmojisAdapter(EventAdapter):
+    type = 'sl'
+    new_type = 'chat_emojis'
+    transforms = {
+        'smileys': 'emojis',
+        'cats': 'groups',
+        'dp': 'default_path',
+        'p': 'custom_path',
     }
 
 
-@adapter
-def adapt_m(data):
-    return {
-        't': 'message',
-        'timestamp': data['ts'],
-        'author': data['f'],
-        'content': data['m'],
-        'room_id': data['r'],
-        'actions': data.get('actions'),
+class ErrorAdapter(EventAdapter):
+    type = 'error'
+    transforms = {
+        'et': 'type',
+        'est': 'group',
+        'error': 'description',
+        'r': 'room_id',
+        'ts': 'timestamp',
     }
 
 
-@adapter
-def adapt_md(data):
-    return {
-        't': 'message_delete',
-        'messages': data['ts'],
-        'room_id': data['r'],
+class MessageAdapter(EventAdapter):
+    type = 'm'
+    new_type = 'message'
+    transforms = {
+        'ts': 'timestamp',
+        'f': 'author',
+        'm': 'content',
+        'r': 'room_id',
+        'actions': 'actions',
     }
 
 
-@adapter
-def adapt_pmr(data):
-    return {
-        't': 'message_read',
-        'from_ts': data.get('fromTime'),
-        'until_ts': data.get('toTime'),
+class MessageDeleteAdapter(EventAdapter):
+    type = 'md'
+    new_type = 'message_delete'
+    transforms = {
+        'ts': 'messages',
+        'r': 'room_id',
     }
 
 
-@adapter
-def adapt_ru(data):
-    return {
-        't': 'room_update',
-        'name': data.get('title'),
-        'can_be_closed': data.get('closeable'),
-        'display_user_flow': data.get('showEnterLeave'),
+class MessageReadAdapter(EventAdapter):
+    type = 'pmr'
+    new_type = 'message_read'
+    transforms = {
+        'fromTime': 'from_ts',
+        'toTime': 'until_ts',
     }
 
 
-@adapter
-def adapt_ro(data):
-    return {
-        't': 'room_open',
-        'room_id': data['r'],
-        'type': data.get('channelType'),
-        'set_focus': data.get('active'),
-        'name': data.get('title'),
-        'can_be_closed': data.get('closeable'),
-        'display_user_flow': data.get('showEnterLeave'),
+class RoomUpdateAdapter(EventAdapter):
+    type = 'ru'
+    new_type = 'room_update'
+    transforms = {
+        'closeable': 'can_be_closed',
+        'showEnterLeave': 'display_user_flow',
     }
 
 
-@adapter
-def adapt_rc(data):
-    return {
-        't': 'room_close',
-        'window_id': data.get('iwid', 0),
+class RoomOpenAdapter(EventAdapter):
+    type = 'ro'
+    new_type = 'room_open'
+    transforms = {
+        'r': 'room_id',
+        'channelType': 'type',
+        'active': 'set_focus',
+        'title': 'name',
+        'closeable': 'can_be_closed',
+        'showEnterLeave': 'display_user_flow',
     }
 
 
-@adapter
-def adapt_tc(data):
-    return {
-        't': 'room_clear_messages',
-        'room_id': data['id'],
-        'type': data['type'],
+class RoomCloseAdapter(EventAdapter):
+    type = 'rc'
+    new_type = 'room_close'
+    transforms = {
+        'r': 'room_id',
+        'iwid': 'window_id',
     }
 
 
-@adapter
-def adapt_hoe(data):
-    return {
-        't': 'has_older_events',
-        'room_id': data['r'],
-        'value': data['hasOlderEvents']
+class HasOlderEventsAdapter(EventAdapter):
+    type = 'hoe'
+    new_type = 'has_older_events'
+    transforms = {
+        'r': 'room_id',
+        'hasOlderEvents': 'value',
     }
 
 
-@adapter
-def adapt_ul(data):
-    return {
-        't': 'user_leave',
-        'nickname': data['nick']
+class UserLeaveAdapter(EventAdapter):
+    type = 'ul'
+    new_type = 'user_leave'
+    transforms = {
+        'nick': 'nickname',
     }
 
 
-"""
-class UserEnterChat(EventAdapter):
-type = 'ue'
+class UserEnterAdapter(EventAdapter):
+    type = 'ue'
+    new_type = 'user_enter'
+    transforms = {}
 
-class UserEnterRoom(EventAdapter):
-type = 'uer'
 
-class UserLeaveRoom(EventAdapter):
-type = 'ulr'
-"""
+class UserEnterRoomAdapter(EventAdapter):
+    type = 'uer'
+    new_type = 'user_enter_room'
+    transforms = {}
+
+
+class UserLeaveRoomAdapter(EventAdapter):
+    type = 'ulr'
+    new_type = 'user_leave_room'
+    transforms = {}
