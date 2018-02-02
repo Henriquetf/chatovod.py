@@ -1,12 +1,56 @@
-from .http import HTTPClient
+import asyncio
+import threading
+
 from collections import deque, OrderedDict
+
+from .errors import ConnectionReset, ConnectionError
+from .http import HTTPClient
+
+
+class EventListener(threading.Thread):
+
+    def __init__(self, chat, *args, **kwargs):
+        threading.Thread.__init__(self, *args, **kwargs)
+        self.chat = chat
+        self._closed = threading.Event()
+        self.event_stream = asyncio.Queue()
+
+    def run(self):
+        while not self._closed.is_set():
+            print('listening')
+            loop = self.chat.loop
+            coro = self.chat._http.chat_bind()
+            future = asyncio.run_coroutine_threadsafe(coro, loop=loop)
+
+            try:
+                result = future.result()
+                self.put(result)
+            except ConnectionReset as e:
+                self.put(e)
+                self.stop()
+            except ConnectionError as err:
+                self.stop()
+
+    def stop(self):
+        self._closed.set()
+
+    def put(self, value):
+        # asyncio.Queue is not thread safe, so wrap it
+        coro = self.event_stream.put(value)
+        f = asyncio.run_coroutine_threadsafe(coro, loop=self.chat.loop)
+        return f.result()
 
 
 class ChatState:
 
-    def __init__(self, client, http):
+    def __init__(self, client, http, loop):
         self.client = client
         self._http = http
+        self.loop = loop
+        self._event_listener = EventListener(chat=self)
+
+    def listen(self):
+        self._event_listener.start()
 
     def reset(self):
         self._users = OrderedDict()
@@ -20,7 +64,7 @@ class ChatState:
     def url(self):
         return self._http.url
 
-    def handle_start(self, data):
+    def _handle_start(self, data):
         for _raw in data:
             transformed, raw = transform_event(_raw)
             event = raw.get('t')
