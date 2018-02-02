@@ -3,14 +3,14 @@ from enum import Enum
 
 class AccountService(Enum):
     """Service where the account is registered."""
-    guest = None
+    guest    = None
     chatovod = 'ch'
     facebook = 'fb'
-    google = 'go'
-    yandex = 'ya'
-    vk = 'vk'
-    mail_ru = 'ma'
-    ok_ru = 'od'
+    google   = 'go'
+    yandex   = 'ya'
+    vk       = 'vk'
+    mail_ru  = 'ma'
+    ok_ru    = 'od'
 
     def _default(self):
         return AccountService.guest
@@ -21,12 +21,12 @@ class Language(Enum):
     It also determines the language of the messages returned by the API.
     i.e.: error messages and ban list text."""
     default = None
-    azeri = 'az'
-    dutch = 'nl'
+    azeri   = 'az'
+    dutch   = 'nl'
     english = 'en'
     russian = 'ru'
     spanish = 'es'
-    tatar = 'tt'
+    tatar   = 'tt'
     turkish = 'tr'
 
     def _default(self):
@@ -35,9 +35,9 @@ class Language(Enum):
 
 class RoomType(Enum):
     """The type of the room."""
-    public = 0
-    private = 1
-    private_mask = 2
+    public   = 0
+    private  = 1
+    _private = 2
 
     def _default(self):
         return RoomType.public
@@ -45,9 +45,9 @@ class RoomType(Enum):
 
 class Gender(Enum):
     """The gender of the user."""
-    none = None
+    none   = None
     female = 1
-    male = 2
+    male   = 2
 
     def _default(self):
         return Gender.none
@@ -55,9 +55,9 @@ class Gender(Enum):
 
 class Group(Enum):
     """The group which the user belongs to."""
-    user = None
+    user      = None
     moderator = 'moderator'
-    admin = 'admin'
+    admin     = 'admin'
 
     def _default(self):
         return Group.user
@@ -65,9 +65,9 @@ class Group(Enum):
 
 class Status(Enum):
     """The current availability of the user."""
-    online = None
-    away = 'away'
-    dnd = 'dnd'
+    online    = None
+    away      = 'away'
+    dnd       = 'dnd'
     invisible = 'invis'
 
     def _default(self):
