@@ -11,13 +11,14 @@ class Chat:
 
     def __init__(self, client, http, loop):
         self.client = client
-        self._http = http
         self.loop = loop
+        self._http = http
         self._event_listener = EventListener(chat=self)
         self._event_handler = EventHandler(chat=self)
 
-    def listen(self):
-        self._event_listener.start()
+    def _listen(self):
+        runner = self._event_listener.run()
+        self.loop.create_task(runner)
 
     def reset(self):
         self._users = OrderedDict()
@@ -51,37 +52,26 @@ class Chat:
         self._rooms.pop(room.id)
 
 
-class EventListener(threading.Thread):
+class EventListener:
 
     def __init__(self, chat, *args, **kwargs):
-        threading.Thread.__init__(self, *args, **kwargs)
         self.chat = chat
-        self._closed = threading.Event()
         self.event_stream = asyncio.Queue()
+        self._closed = asyncio.Event()
 
+    @asyncio.coroutine
     def run(self):
         while not self._closed.is_set():
-            loop = self.chat.loop
-            coro = self.chat._http.chat_bind()
-            future = asyncio.run_coroutine_threadsafe(coro, loop=loop)
-
             try:
-                result = future.result()
-                self.put(result)
-            except ConnectionReset as e:
-                self.put(e)
+                response = yield from self.chat._http.chat_bind()
+            except (ConnectionReset, ConnectionError) as e:
+                yield from self.event_stream.put(e)
                 self.stop()
-            except ConnectionError as err:
-                self.stop()
+            else:
+                yield from self.event_stream.put(response)
 
     def stop(self):
         self._closed.set()
-
-    def put(self, value):
-        # asyncio.Queue is not thread safe, so wrap it
-        coro = self.event_stream.put(value)
-        f = asyncio.run_coroutine_threadsafe(coro, loop=self.chat.loop)
-        return f.result()
 
 
 class EventHandler:
