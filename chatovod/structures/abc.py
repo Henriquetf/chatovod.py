@@ -1,13 +1,21 @@
+import asyncio
+
 from abc import ABCMeta, abstractmethod
 
 
-class Messageable(metaclass=ABCMeta):
+class Message(metaclass=ABCMeta):
 
-    @abstractmethod
-    def _get_room(self):
-        return NotImplemented
+    __slots__ = ()
 
-    @classmethod
-    def __subclasshook__(cls, C):
-        if cls is Messageable:
-            ...
+    @asyncio.coroutine
+    def delete(self):
+        self.chat._add_message_to_delete(self)
+
+    @asyncio.coroutine
+    def delete_now(self):
+        yield from self.chat._http.delete_message(self.room.id, self.id)
+
+    async def send(self, content):
+        room = self._get_room()
+
+        return await self._state.http.room_message_send(content, room.id)
