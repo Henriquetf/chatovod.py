@@ -232,6 +232,9 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
+    def delete_message(self, room_id, message_id):
+        return self.delete_messages(room_id, [message_id])
+
     def fetch_messages(self):
         route = Route(path=Endpoints.ROOM_MESSAGES_FETCH, url=self.url)
 
