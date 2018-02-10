@@ -1,7 +1,13 @@
-class Message:
+from chatovod.structures import abc as ChatovodABC
 
-    def __init__(self, *, room, data):
+
+class Message(ChatovodABC.Message):
+
+    def __init__(self, *, chat, room, data):
+        self.chat = chat
+        self.room = room
         self.id = data['timestamp']
+        self.author = data.get('author')
 
         self.content = data['content']
         self.to = data.get('to', [])
@@ -11,11 +17,6 @@ class Message:
 
         self._old = data.get('s', False)
         self.fetched = data.get('pp', False)
-        self.room = room
-        self._handle_author(data)
-
-    def _handle_author(self, data):
-        self.author = author
 
     @property
     def old(self):

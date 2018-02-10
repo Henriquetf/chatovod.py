@@ -7,13 +7,13 @@ class Room:
     __slots__ = ('id', 'type', 'name', 'can_be_closed',
                  'display_user_flow', 'welcome_message')
 
-    def __init__(self, *, event):
-        self.id = event['id']
-        self.type = RoomType(event.get('t'))
+    def __init__(self, *, data):
+        self.id = data['room_id']
+        self.type = RoomType(data.get('type'))
 
-        self.name = event.get('name')
-        self.can_be_closed = event.get('closeable', False)
-        self.display_user_flow = event.get('showEnterLeave', False)
+        self.name = data.get('name')
+        self.can_be_closed = data.get('can_be_closed', False)
+        self.display_user_flow = data.get('display_user_flow', False)
 
         self.welcome_message = None
 
