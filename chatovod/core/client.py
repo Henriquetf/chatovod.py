@@ -60,9 +60,9 @@ class Client:
                 raise
             else:
                 if isinstance(event, list):
-                    self.chat._handle_event_stream(event)
+                    yield from self.chat._handle_event_stream(event)
                 else:
-                    self.chat._handle_event(event)
+                    yield from self.chat._handle_event(event)
 
     @asyncio.coroutine
     def close(self):
