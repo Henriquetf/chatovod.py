@@ -54,9 +54,10 @@ def generate_bans_info_from_html(html_ban_list, parser='html.parser'):
             continue
 
         ban_info_match = parse_ban_message.search(ban_entry.text)
-        ban_info = patch_ban_info(ban_info_match.groupdict(), ban_data)
+        ban_info = ban_info_match.groupdict()
+        patched_ban_info = patch_ban_info(ban_info, ban_data)
 
-        yield ban_info
+        yield patched_ban_info
 
 
 def join_all_numbers(string, separator=''):
