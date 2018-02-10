@@ -154,6 +154,8 @@ class EventHandler:
                 else:
                     parser_func(raw)
 
+        log.info('Handle start finished')
+
     def parse_message(self, data):
         message = self.chat._create_message(data)
         log.info(message.content)

@@ -32,7 +32,7 @@ class EventAdapter(metaclass=EventAdapterMeta):
             event = data.get('t')
             adapter = ADAPTERS_MAP.get(event)
             if adapter is None:
-                log.warning('Unable to adapt unknown event %s', event)
+                log.debug('Unable to adapt unknown event %s', event)
                 return data
         else:
             adapter = cls
