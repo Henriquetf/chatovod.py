@@ -1,3 +1,6 @@
+import logging
+
+log = logging.getLogger(__name__)
 
 ADAPTERS_MAP = {}
 
@@ -25,11 +28,20 @@ class EventAdapter(metaclass=EventAdapterMeta):
 
     @classmethod
     def adapt(cls, data):
-        transformed = transform(data, cls.transforms)
+        if cls is EventAdapter:
+            event = data.get('t')
+            adapter = ADAPTERS_MAP.get(event)
+            if adapter is None:
+                log.warning('Unable to adapt unknown event %s', event)
+                return data
+        else:
+            adapter = cls
+
+        transformed = transform(data, adapter.transforms)
 
         # Patch the type of the event
         try:
-            new_type = getattr(cls, 'new_type')
+            new_type = getattr(adapter, 'new_type')
         except AttributeError:
             pass
         else:
