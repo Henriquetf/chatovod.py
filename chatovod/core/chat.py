@@ -1,8 +1,12 @@
 import asyncio
-import threading
 import logging
+import threading
 
-from collections import deque, OrderedDict
+from collections import defaultdict, OrderedDict
+
+from chatovod.api.event_adapter import EventAdapter
+from chatovod.structures.message import Message
+from chatovod.structures.room import Room
 
 from .errors import ConnectionReset, ConnectionError
 from .http import HTTPClient
@@ -20,6 +24,8 @@ class Chat:
         self._event_listener = EventListener(chat=self)
         self._event_handler = EventHandler(chat=self)
 
+        self.reset()
+
     def _listen(self):
         log.debug('Initializing event listener')
         runner = self._event_listener.run()
@@ -32,6 +38,7 @@ class Chat:
         self._emojis_groups = []
         self._emojis_base_path = None
         self._custom_emojis_base_path = None
+        self._messages_to_delete = []
 
     @property
     def url(self):
@@ -56,43 +63,66 @@ class Chat:
     def _remove_room(self, room):
         self._rooms.pop(room.id)
 
-    @asyncio.coroutine
-    def _get_event(self):
-        event = yield from self._event_listener.event_stream.get()
-
-        if isinstance(event, Exception):
-            raise event
-        return event
+    def _add_message_to_delete(self, message):
+        self._messages_to_delete.append(message)
 
     @asyncio.coroutine
-    def _handle_event_stream(self, event_stream):
-        ...
+    def _delete_deferred_messages(self):
+        messages_to_delete = self._messages_to_delete
+        messages_by_room = defaultdict(list)
+
+        for message in messages_to_delete:
+            messages_by_room[message.room.id].append(message.id)
+
+        messages_to_delete.clear()
+
+        for room_id, messages in messages_by_room.items():
+            log.debug('Deleting deferred messages from %s', room_id)
+            yield from self._http.delete_messages(room_id, messages)
 
     @asyncio.coroutine
-    def _handle_event(self, event):
-        ...
+    def _start(self):
+        yield from self._http.fetch_session()
+        info = yield from self._http.fetch_info()
+        self._event_handler.handle_start(info)
+
+    def _create_room(self, data):
+        room = Room(data=data)
+        return room
 
 class EventListener:
 
     def __init__(self, chat, *args, **kwargs):
         self.chat = chat
-        self.event_stream = asyncio.Queue()
-        self._closed = asyncio.Event()
 
     @asyncio.coroutine
-    def run(self):
-        while not self._closed.is_set():
-            try:
-                response = yield from self.chat._http.chat_bind()
-            except (ConnectionReset, ConnectionError) as e:
-                log.warning('A %s error occurred during event bind', e.__name__)
-                yield from self.event_stream.put(e)
-                self.stop()
-            else:
-                yield from self.event_stream.put(response)
+    def listen(self):
+        try:
+            coro = self.chat._http.chat_bind()
+            msg_stream = yield from asyncio.wait_for(coro, timeout=80, loop=self.chat.loop)
+            yield from self.received_message(msg_stream)
+        except (ConnectionReset, ConnectionError) as e:
+            log.warning('A %s error occurred during event bind', e.__name__)
+            raise
 
-    def stop(self):
-        self._closed.set()
+    @asyncio.coroutine
+    def received_message(self, msg_stream):
+        if not isinstance(msg_stream, list):
+            log.warn('Received %s with content %s', type(msg_stream), msg_stream)
+            raise Exception
+
+        for data in msg_stream:
+            adapted_data = EventAdapter.adapt(data)
+
+            event = adapted_data.get('t')
+            parser = 'parse_' + event.lower()
+
+            try:
+                parser_func = getattr(self.chat._event_handler, parser)
+            except AttributeError:
+                log.warning('Unknown event "%s"', event)
+            else:
+                parser_func(adapted_data)
 
 
 class EventHandler:
@@ -100,44 +130,33 @@ class EventHandler:
     def __init__(self, chat):
         self.chat = chat
 
-    def _(self, data):
-        event = data.get('t')
+    def handle_start(self, msg_stream):
+        for data in msg_stream:
+            adapted_data = EventAdapter.adapt(data)
+            event = adapted_data.get('t')
+            parser = '_parse_' + event
 
-        if issubclass(event, str):
-            try:
-                handler = getattr(self, 'handle_' + event)
-            except AttributeError:
-                # log.info('Unhandled event {}')
-                ...
-            else:
-                handler(data)
-        else:
-            try:
-                self._handle_typeless_event(data)
-            except AttributeError:
-                # log.info('')
-                ...
-
-    def _handle_start(self, data):
-        for _raw in data:
-            transformed, raw = transform_event(_raw)
-            event = raw.get('t')
-            handle_name = 'handle_' + event
-
-            if event in ('set_option', 'chat_emojis', 'error') and hasattr(self, handle_name):
-                handler = getattr(self, handle_name)
-                handler(raw)
-            elif event == 'room_open':
-                room = self._create_room(raw)
-                self._add_room(room)
+            if event == 'room_open':
+                room = self.chat._create_room(adapted_data)
+                self.chat._add_room(room)
             elif event == 'message':
-                message = self._create_message(message)
-                self._cache_message(message)
+                #message = self.chat._create_message(message)
+                #self.chat._cache_message(message)
+                ...
             elif event == 'has_older_events':
                 # TODO: Implement this
                 ...
             else:
-                log.info('Unhandled event %s, transformed: %s', _raw, transformed)
+                try:
+                    parser_func = getattr(self, parser)
+                except AttributeError:
+                    log.info('Unhandled event on start %s', adapted_data)
+                else:
+                    parser_func(raw)
+
+    def parse_message(self, data):
+        message = self.chat._create_message(data)
+        log.info(message.content)
 
     def handle_set_option(self, raw):
         option = raw['option']

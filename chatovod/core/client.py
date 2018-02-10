@@ -48,21 +48,10 @@ class Client:
 
     @asyncio.coroutine
     def init(self):
-        yield from self.http.fetch_session()
-        yield from self.http.fetch_info()
-        self.chat._listen()
+        yield from self.chat._start()
 
         while True:
-            try:
-                event = yield from self.chat._get_event()
-            except:
-                # TODO: handle exception
-                raise
-            else:
-                if isinstance(event, list):
-                    yield from self.chat._handle_event_stream(event)
-                else:
-                    yield from self.chat._handle_event(event)
+            yield from self.chat._event_listener.listen()
 
     @asyncio.coroutine
     def close(self):
