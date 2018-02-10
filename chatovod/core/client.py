@@ -1,22 +1,21 @@
 import asyncio
+import logging
 
-from chatovod.core.chat import Chat
-from chatovod.core.http import HTTPClient
+from .chat import Chat
+from .http import HTTPClient
+from .client_user import ClientUser
+
+log = logging.getLogger(__name__)
 
 
 class Client:
 
     def __init__(self, chat_name, custom=False, loop=None):
-
-        if custom:
-            host = chat_name
-        else:
-            host = '{}.chatovod.com'.format(chat_name)
-
-        self.host = host
+        self.host = chat_name if custom else '{}.chatovod.com'.format(chat_name)
         self.loop = asyncio.get_event_loop() if loop is None else loop
+        self.user = ClientUser(client=self)
         self.http = HTTPClient(host=self.host, loop=loop)
-        self.chat = Chat(client=self, http=self.http, loop=self.loop)
+        self.chat = Chat(client=self, user=self.user, http=self.http, loop=self.loop)
 
     def run(self, *args, **kwargs):
         loop = self.loop
@@ -54,12 +53,20 @@ class Client:
         self.chat._listen()
 
         while True:
-            event_listener = self.chat._event_listener
-            content = yield from event_listener.event_stream.get()
+            try:
+                event = yield from self.chat._get_event()
+            except:
+                # TODO: handle exception
+                raise
+            else:
+                if isinstance(event, list):
+                    self.chat._handle_event_stream(event)
+                else:
+                    self.chat._handle_event(event)
 
     @asyncio.coroutine
     def close(self):
-        # Only if signed in
+        # TODO: Only if signed in
         # yield from self.http.leave_chat()
         # TODO: Only if logged in
         # yield from self.http.logout()
@@ -68,4 +75,5 @@ class Client:
 
     @asyncio.coroutine
     def login(self, email, password):
+        log.info('Attempting to login')
         yield from self.http.login(email, password)

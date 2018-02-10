@@ -1,22 +1,27 @@
 import asyncio
 import threading
+import logging
 
 from collections import deque, OrderedDict
 
 from .errors import ConnectionReset, ConnectionError
 from .http import HTTPClient
 
+log = logging.getLogger(__name__)
+
 
 class Chat:
 
-    def __init__(self, client, http, loop):
+    def __init__(self, client, user, http, loop):
         self.client = client
+        self.user = user
         self.loop = loop
         self._http = http
         self._event_listener = EventListener(chat=self)
         self._event_handler = EventHandler(chat=self)
 
     def _listen(self):
+        log.debug('Initializing event listener')
         runner = self._event_listener.run()
         self.loop.create_task(runner)
 
@@ -51,6 +56,21 @@ class Chat:
     def _remove_room(self, room):
         self._rooms.pop(room.id)
 
+    @asyncio.coroutine
+    def _get_event(self):
+        event = yield from self._event_listener.event_stream.get()
+
+        if isinstance(event, Exception):
+            raise event
+        return event
+
+    @asyncio.coroutine
+    def _handle_event_stream(self, event_stream):
+        ...
+
+    @asyncio.coroutine
+    def _handle_event(self, event):
+        ...
 
 class EventListener:
 
@@ -65,6 +85,7 @@ class EventListener:
             try:
                 response = yield from self.chat._http.chat_bind()
             except (ConnectionReset, ConnectionError) as e:
+                log.warning('A %s error occurred during event bind', e.__name__)
                 yield from self.event_stream.put(e)
                 self.stop()
             else:
@@ -116,20 +137,22 @@ class EventHandler:
                 # TODO: Implement this
                 ...
             else:
-                log.info('Unhandled event "{}", transformed: {}'.format(_raw, transformed))
+                log.info('Unhandled event %s, transformed: %s', _raw, transformed)
 
     def handle_set_option(self, raw):
         option = raw['option']
         value = raw.get('value')
 
+        log.debug("Setting option '%s' to '%s'", option, value)
+
         if option == 'nick':
-            self._user.nickname = value
+            self.user.nickname = value
         elif option == 'signedIn':
-            self._user.signed_in = value
+            self.user.signed_in = value
         elif option == 'wid':
             self._http.window_id = value
         else:
-            log.info('Unhandled option {} {}'.format(option, raw))
+            log.info('Unhandled option %s:%s', option, raw)
 
     def handle_chat_emojis(self, raw):
         self._emojis_base_path = raw['default_path']

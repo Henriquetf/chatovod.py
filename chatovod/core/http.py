@@ -1,6 +1,7 @@
 import aiohttp
 import asyncio
 import json
+import logging
 
 from yarl import URL
 
@@ -10,11 +11,13 @@ from chatovod.api.endpoints import APIEndpoint as Endpoints
 
 from .errors import error_factory, InvalidLogin
 
+log = logging.getLogger(__name__)
+
 
 class HTTPClient:
 
     def __init__(self, host, secure=True, client=None, loop=None):
-        self.loop = loop if loop else asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop() if loop is None else loop
         self._session = aiohttp.ClientSession(loop=self.loop)
 
         self.window_id = 0
@@ -81,6 +84,7 @@ class HTTPClient:
                         error = error_factory(data)
                         raise error
 
+                log.debug('"%s %s" has received %s', method, url, data)
                 return data
 
         finally:
