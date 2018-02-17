@@ -1,0 +1,132 @@
+---
+- type: so
+  new_type: set_option
+  fields:
+    k:
+      transform: option
+    v:
+      transform: value
+
+- type: cls
+  fields:
+    accountName:
+      transform: email
+    accountType:
+      transform: account_type
+    accountGroup:
+      transform: user_group
+    lastNick:
+      transform: last_nickname
+
+- type: sl
+  new_type: chat_emojis
+  fields:
+    smileys:
+      transform: emojis
+    cats:
+      transform: groups
+    dp:
+      transform: default_path
+    p:
+      transform: custom_path
+
+- type: error
+  fields:
+    et:
+      transform: type
+    est:
+      transform: group
+    error:
+      transform: description
+    r:
+      transform: room_id
+    ts:
+      transform: timestamp
+
+- type: m
+  new_type: message
+  fields:
+    ts:
+      transform: timestamp
+    f:
+      transform: author
+    m:
+      transform: content
+    r:
+      transform: room_id
+    actions:
+      transform: actions
+
+- type: md
+  new_type: message_delete
+  fields:
+    ts:
+      transform: messages
+    r:
+      transform: room_id
+
+- type: pmr
+  new_type: message_read
+  fields:
+    fromTime:
+      transform: from_ts
+    toTime:
+      transform: until_ts
+
+- type: ru
+  new_type: room_update
+  fields:
+    closeable:
+      transform: can_be_closed
+    showEnterLeave:
+      transform: display_user_flow
+
+- type: ro
+  new_type: room_open
+  fields:
+    r:
+      transform: room_id
+    channelType:
+      transform: type
+    active:
+      transform: set_focus
+    title:
+      transform: name
+    closeable:
+      transform: can_be_closed
+    showEnterLeave:
+      transform: display_user_flow
+
+- type: rc
+  new_type: room_close
+  fields:
+    r:
+      transform: room_id
+    iwid:
+      transform: window_id
+
+- type: hoe
+  new_type: has_older_events
+  fields:
+    r:
+      transform: room_id
+    hasOlderEvents:
+      transform: value
+
+- type: ul
+  new_type: user_leave
+  fields:
+    nick:
+      transform: nickname
+
+- type: ue
+  new_type: user_enter
+  fields: {}
+
+- type: uer
+  new_type: user_enter_room
+  fields: {}
+
+- type: ulr
+  new_type: user_leave_room
+  fields: {}

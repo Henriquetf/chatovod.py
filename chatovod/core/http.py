@@ -11,7 +11,7 @@ from chatovod.api.endpoints import APIEndpoint as Endpoints
 
 from .errors import error_factory, InvalidLogin
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class HTTPClient:
@@ -84,7 +84,7 @@ class HTTPClient:
                         error = error_factory(data)
                         raise error
 
-                log.debug('"%s %s" has received %s', method, url, data)
+                logger.debug('"%s %s" has received %s', method, url, data)
                 return data
 
         finally:

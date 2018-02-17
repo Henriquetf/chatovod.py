@@ -5,7 +5,7 @@ from .chat import Chat
 from .http import HTTPClient
 from .client_user import ClientUser
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Client:
@@ -59,10 +59,10 @@ class Client:
         # yield from self.http.leave_chat()
         # TODO: Only if logged in
         # yield from self.http.logout()
-        ...
         # yield from self.http.close()
+        ...
 
     @asyncio.coroutine
     def login(self, email, password):
-        log.info('Attempting to login')
+        logger.info('Attempting to login')
         yield from self.http.login(email, password)

@@ -26,11 +26,6 @@ class Chat:
 
         self.reset()
 
-    def _listen(self):
-        log.debug('Initializing event listener')
-        runner = self._event_listener.run()
-        self.loop.create_task(runner)
-
     def reset(self):
         self._users = OrderedDict()
         self._rooms = OrderedDict()
@@ -84,7 +79,7 @@ class Chat:
     def _start(self):
         yield from self._http.fetch_session()
         info = yield from self._http.fetch_info()
-        self._event_handler.handle_start(info)
+        yield from self._event_handler.handle_start(info)
 
     def _create_room(self, data):
         room = Room(data=data)
@@ -108,7 +103,7 @@ class EventListener:
     @asyncio.coroutine
     def received_message(self, msg_stream):
         if not isinstance(msg_stream, list):
-            log.warn('Received %s with content %s', type(msg_stream), msg_stream)
+            log.warning('Received %s with content %s', type(msg_stream), msg_stream)
             raise Exception
 
         for data in msg_stream:
@@ -130,6 +125,7 @@ class EventHandler:
     def __init__(self, chat):
         self.chat = chat
 
+    @asyncio.coroutine
     def handle_start(self, msg_stream):
         for data in msg_stream:
             adapted_data = EventAdapter.adapt(data)
@@ -150,17 +146,16 @@ class EventHandler:
                 try:
                     parser_func = getattr(self, parser)
                 except AttributeError:
-                    log.info('Unhandled event on start %s', adapted_data)
+                    log.debug('Unhandled event on start %s', adapted_data)
                 else:
                     parser_func(raw)
 
         log.info('Handle start finished')
 
-    def parse_message(self, data):
+    def _parse_message(self, data):
         message = self.chat._create_message(data)
-        log.info(message.content)
 
-    def handle_set_option(self, raw):
+    def parse_set_option(self, raw):
         option = raw['option']
         value = raw.get('value')
 
