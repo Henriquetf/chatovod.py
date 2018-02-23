@@ -54,7 +54,7 @@ class HTTPClient:
             req_data['data'] = {k: v for k, v in data.items() if v is not None}
 
     @asyncio.coroutine
-    def request(self, route, headers=None, return_raw=False, **kwargs):
+    def request(self, route, headers=None, return_response=False, **kwargs):
         method = route.method
         url = route.url
 
@@ -67,7 +67,7 @@ class HTTPClient:
         response = yield from self._session.request(method, url, **kwargs)
 
         try:
-            if return_raw:
+            if return_response:
                 return response
 
             text = yield from response.text(encoding='utf-8')
@@ -92,7 +92,7 @@ class HTTPClient:
             yield from response.release()
 
     def raw_request(self, *args, **kwargs):
-        return self.request(*args, return_raw=True, **kwargs)
+        return self.request(*args, return_response=True, **kwargs)
 
     @asyncio.coroutine
     def close(self):
@@ -188,7 +188,7 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    def close_room(self):
+    def close_room(self, room_id):
         route = Route(path=Endpoints.ROOM_CLOSE, url=self.url)
 
         params = {
