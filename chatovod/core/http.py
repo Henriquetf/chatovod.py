@@ -48,10 +48,16 @@ class HTTPClient:
         data = req_data.get('data')
         # aiohttp doesn't filter out None parameters
         if params:
-            req_data['params'] = {k: v for k, v in params.items() if v is not None}
+            if type(params) == dict:
+                req_data['params'] = {k: v for k, v in params.items() if v is not None}
+            elif type(params) == list:
+                req_data['params'] = [(k, v) for k, v in params if v is not None]
 
         if data:
-            req_data['data'] = {k: v for k, v in data.items() if v is not None}
+            if type(data) == dict:
+                req_data['data'] = {k: v for k, v in data.items() if v is not None}
+            elif type(data) == list:
+                req_data['data'] = [(k, v) for k, v in data if v is not None]
 
     @asyncio.coroutine
     def request(self, route, headers=None, return_response=False, **kwargs):
@@ -82,6 +88,7 @@ class HTTPClient:
                 if is_json:
                     if isinstance(data, dict) and data.get('t') == 'error':
                         error = error_factory(data)
+                        logger.debug(data)
                         raise error
 
                 logger.debug('"%s %s" has received %s', method, url, data)
@@ -150,13 +157,13 @@ class HTTPClient:
     def moderate(self, nickname=None, message=None, room_id=None):
         route = Route(path=Endpoints.CHAT_NICKNAME_MODERATE, url=self.url)
 
-        data = {
+        params = {
             'message': message,
             'nick': nickname,
             'roomId': room_id
         }
 
-        return self.request(route, data=data)
+        return self.request(route, params=params)
 
     def fetch_nickname_info(self, nicknames):
         route = Route(path=Endpoints.CHAT_NICKNAME_FETCH, url=self.url)
@@ -168,14 +175,14 @@ class HTTPClient:
     def open_room(self, room_id, force_active=False, limit=20):
         route = Route(path=Endpoints.ROOM_OPEN, url=self.url)
 
-        params = {
+        data = {
             'roomId': room_id,
             'forceActive': force_active,
             'wid': self.window_id,
             'limit': limit,
         }
 
-        return self.request(route)
+        return self.request(route, data=data)
 
     def open_room_private(self, nickname, limit=20):
         route = Route(path=Endpoints.ROOM_PRIVATE_OPEN, url=self.url)
@@ -268,10 +275,14 @@ class HTTPClient:
 
         return self.request(route)
 
-    def set_user_status(self):
+    def set_user_status(self, status):
         route = Route(path=Endpoints.USER_STATUS_SET, url=self.url)
 
-        return self.request(route)
+        data = {
+            'status': status
+        }
+
+        return self.request(route, data=data)
 
     def register(self):
         route = Route(path=Endpoints.USER_REGISTER, url=self.url)
