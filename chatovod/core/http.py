@@ -270,10 +270,15 @@ class HTTPClient:
 
         return self.request(route, params=params)
 
-    def set_user_age(self):
+    def set_user_age(self, age, limit=20):
         route = Route(path=Endpoints.USER_AGE_SET, url=self.url)
 
-        return self.request(route)
+        data = {
+            'age': age,
+            'limit': limit
+        }
+
+        return self.request(route, data=data)
 
     def set_user_status(self, status):
         route = Route(path=Endpoints.USER_STATUS_SET, url=self.url)
