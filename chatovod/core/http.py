@@ -43,7 +43,13 @@ class HTTPClient:
     def _filter_cookies(self, request_url):
         return self._session.cookie_jar.filter_cookies(request_url)
 
-    def _patch_request_data(self, req_data):
+    def _remove_none_params_and_data(self, req_data):
+        """Filter out items where the value is None.
+
+        AIOHTTP doesn't filter out None values,
+        instead it converts None into string.
+        """
+
         params = req_data.get('params')
         data = req_data.get('data')
         # aiohttp doesn't filter out None parameters
@@ -64,7 +70,7 @@ class HTTPClient:
         method = route.method
         url = route.url
 
-        self._patch_request_data(kwargs)
+        self._remove_none_params_and_data(kwargs)
 
         kwargs['headers'] = {'User-Agent': self.user_agent}
         if headers:
