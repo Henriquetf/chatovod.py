@@ -40,7 +40,10 @@ class EventAdapter(metaclass=EventAdapterMeta):
 
         transformed_data = transform(data, adapter.transforms)
         # Patch the type of the event
-        transformed_data['t'] = getattr(adapter, 'new_type', event)
+        try:
+            transformed_data['t'] = getattr(adapter, 'new_type')
+        except:
+            pass
 
         return transformed_data
 
