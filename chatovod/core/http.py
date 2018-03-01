@@ -37,22 +37,22 @@ class HTTPClient:
 
     @property
     def session_id(self):
-        cookies = self._filter_cookies.get(self.session_id_type)
-        return cookies.get('ssid' if self.secure else 'sid').value
+        cookies = self._filter_cookies(self.url)
+        session_id_cookie = cookies.get('ssid' if self.secure else 'sid')
+        return session_id_cookie.value
 
     def _filter_cookies(self, request_url):
         return self._session.cookie_jar.filter_cookies(request_url)
 
     def _remove_none_params_and_data(self, req_data):
-        """Filter out items where the value is None.
+        """Filter out items in params and data where the value is None.
 
-        AIOHTTP doesn't filter out None values,
+        aiohttp doesn't filter out None values,
         instead it converts None into string.
         """
-
         params = req_data.get('params')
         data = req_data.get('data')
-        # aiohttp doesn't filter out None parameters
+
         if params:
             if type(params) == dict:
                 req_data['params'] = {k: v for k, v in params.items() if v is not None}
