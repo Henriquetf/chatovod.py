@@ -16,6 +16,7 @@ class Client:
         self.user = ClientUser(client=self)
         self.http = HTTPClient(host=self.host, loop=loop)
         self.chat = Chat(client=self, user=self.user, http=self.http, loop=self.loop)
+        self.event_listener = self.chat._event_listener
 
     def run(self, *args, **kwargs):
         loop = self.loop
@@ -51,7 +52,7 @@ class Client:
         yield from self.chat._start()
 
         while True:
-            yield from self.chat._event_listener.listen()
+            yield from self.event_listener.listen()
 
     @asyncio.coroutine
     def close(self):

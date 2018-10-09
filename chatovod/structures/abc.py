@@ -8,11 +8,11 @@ class Message(metaclass=ABCMeta):
     __slots__ = ()
 
     @asyncio.coroutine
-    def delete(self):
+    def delete_later(self):
         self.chat._add_message_to_delete(self)
 
     @asyncio.coroutine
-    def delete_now(self):
+    def delete(self):
         yield from self.chat._http.delete_message(self.room.id, self.id)
 
     async def send(self, content):
