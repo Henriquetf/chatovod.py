@@ -1,7 +1,7 @@
 # -*- encoding: UTF-8 -*-
 
 from bs4 import BeautifulSoup, SoupStrainer
-from re import compile as re_compile
+import re
 
 
 # Makes BeautifulSoup parse only ban entry elements
@@ -18,12 +18,27 @@ only_ban_entries = SoupStrainer('label')
 # 'Fluffy дат(тан) 12.31.2016 12.50 AM чаклы (120 minutes) '
 # 'модераторларга EvilModerator, комментарий: I banned you'
 
-parse_ban_message = re_compile(
-    r'(?P<nickname>.{,25}?) дат\(тан\) '
-    r'(?P<month>[0-9]+).(?P<day>[0-9]+).(?P<year>[0-9]+) '
-    r'(?P<hour>[0-9]+).(?P<minute>[0-9]+) (?P<period>AM|PM) чаклы '
-    r'\((?P<duration>[0-9,]+) \w+\) модераторларга '
-    r'(?P<author>.{,25}?), комментарий: (?P<comment>(.|\n){,256}?)')
+parse_ban_message = re.compile(
+    r"""(?P<nickname>.{1,25}?) # A nickname must have up to 25 characters
+        ([ ]\S*[ ])            # Single space, non-space characters, single space
+        (?P<month>[0-9]{1,2})  # Month
+        .(?P<day>[0-9]{1,2})   # Day
+        .(?P<year>[0-9]{1,4})  # Year
+        [ ]                    # Space
+        (?P<hour>[0-9]{1,2}).(?P<minute>[0-9]{1,2}) # Hour and minute
+                                                    # in 12-hour clock format
+        [ ]
+        (?P<period>AM|PM) # Period of the day - AM or PM
+        ([ ]\S*[ ])
+        \(                        # The following will be wrapped in parenthesis
+            (?P<duration>[0-9,]+) # Duration of the ban in minutes
+            ([ ]\w+)              # Space, word minutes
+        \)                        # Close parenthesis
+        ([ ]\S*[ ])
+        (?P<author>.{1,25}?)  # Nickname of the author of the ban
+        (,[ ]комментарий:[ ]) # We need this to know when the author nickname
+                              # ends and when the ban comment starts
+        (?P<comment>(.|\n){,256}?)$""", re.VERBOSE)
 
 
 def patch_ban_info(ban_info, ban_data):
