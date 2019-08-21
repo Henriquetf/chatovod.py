@@ -28,7 +28,7 @@ class HTTPClient:
         scheme = 'https' if secure else 'http'
         self.url = URL.build(scheme=scheme, host=host)
 
-        user_agent = 'ChatovodBot (https://github.com/Coquetoon/chatovod.py {0}) Firefox/Bot'
+        user_agent = 'ChatovodBot (https://github.com/Henriquetf/chatovod.py {0}) Firefox/Bot'
         self.user_agent = user_agent.format(__version__)
 
     @property
@@ -136,8 +136,7 @@ class HTTPClient:
         route = Route(path=Endpoints.CHAT_ROOMS_FETCH, url=self.url)
         return self.request(route)
 
-    def ban(self, nickname, messages=None,
-            room_id=None, ban_time=None, comment=None):
+    def ban(self, nickname, messages=None, room_id=None, ban_time=None, comment=None):
         route = Route(path=Endpoints.CHAT_NICKNAME_BAN, url=self.url)
 
         data = {
