@@ -65,8 +65,7 @@ class HTTPClient:
             elif type(data) == list:
                 req_data['data'] = [(k, v) for k, v in data if v is not None]
 
-    @asyncio.coroutine
-    def request(self, route, headers=None, return_response=False, **kwargs):
+    async def request(self, route, headers=None, return_response=False, **kwargs):
         method = route.method
         url = route.url
 
@@ -76,13 +75,13 @@ class HTTPClient:
         if headers:
             kwargs['headers'].update(headers)
 
-        response = yield from self._session.request(method, url, **kwargs)
+        response = await self._session.request(method, url, **kwargs)
 
         try:
             if return_response:
                 return response
 
-            text = yield from response.text(encoding='utf-8')
+            text = await response.text(encoding='utf-8')
             is_json = response.content_type == 'application/json'
 
             if is_json:
@@ -102,14 +101,13 @@ class HTTPClient:
 
         finally:
             # Prevents 'Unclosed connection' and 'Unclosed response'
-            yield from response.release()
+            await response.release()
 
     def raw_request(self, *args, **kwargs):
         return self.request(*args, return_response=True, **kwargs)
 
-    @asyncio.coroutine
-    def close(self):
-        yield from self._session.close()
+    async def close(self):
+        await self._session.close()
 
     def chat_bind(self):
         route = Route(path=Endpoints.CHAT_BIND, url=self.url)
@@ -299,17 +297,16 @@ class HTTPClient:
 
         return self.request(route)
 
-    @asyncio.coroutine
-    def login(self, email, password):
+    async def login(self, email, password):
         # Fetch CSRF token, necessary for posting the login, and session ID
-        yield from self._fetch_account_session()
+        await self._fetch_account_session()
         # Post login
-        login_response = yield from self._post_login(email, password)
+        login_response = await self._post_login(email, password)
 
         if login_response.headers['Location'] != 'https://account.chatovod.com/u/':
             raise InvalidLogin()
 
-        yield from self._associate_account()
+        await self._associate_account()
 
     def logout(self):
         return self.raw_request(AccountEndpoint.LOGOUT)

@@ -61,8 +61,7 @@ class Chat:
     def _add_message_to_delete(self, message):
         self._messages_to_delete.append(message)
 
-    @asyncio.coroutine
-    def _delete_deferred_messages(self):
+    async def _delete_deferred_messages(self):
         messages_to_delete = self._messages_to_delete
         messages_by_room = defaultdict(list)
 
@@ -73,13 +72,12 @@ class Chat:
 
         for room_id, messages in messages_by_room.items():
             log.debug('Deleting deferred messages from %s', room_id)
-            yield from self._http.delete_messages(room_id, messages)
+            await self._http.delete_messages(room_id, messages)
 
-    @asyncio.coroutine
-    def _start(self):
-        yield from self._http.fetch_session()
-        info = yield from self._http.fetch_info()
-        yield from self._event_handler.handle_start(info)
+    async def _start(self):
+        await self._http.fetch_session()
+        info = await self._http.fetch_info()
+        await self._event_handler.handle_start(info)
 
     def _create_room(self, data):
         room = Room(data=data)
@@ -90,18 +88,16 @@ class EventListener:
     def __init__(self, chat, *args, **kwargs):
         self.chat = chat
 
-    @asyncio.coroutine
-    def listen(self):
+    async def listen(self):
         try:
             coro = self.chat._http.chat_bind()
-            msg_stream = yield from asyncio.wait_for(coro, timeout=80, loop=self.chat.loop)
-            yield from self.received_message(msg_stream)
+            msg_stream = await asyncio.wait_for(coro, timeout=80, loop=self.chat.loop)
+            await self.received_message(msg_stream)
         except (ConnectionReset, ConnectionError) as e:
             log.warning('A %s error occurred during event bind', e.__name__)
             raise
 
-    @asyncio.coroutine
-    def received_message(self, msg_stream):
+    async def received_message(self, msg_stream):
         if not isinstance(msg_stream, list):
             log.warning('Received %s with content %s', type(msg_stream), msg_stream)
             raise Exception
@@ -125,8 +121,7 @@ class EventHandler:
     def __init__(self, chat):
         self.chat = chat
 
-    @asyncio.coroutine
-    def handle_start(self, msg_stream):
+    async def handle_start(self, msg_stream):
         for data in msg_stream:
             adapted_data = EventAdapter.adapt(data)
             event = adapted_data.get('t')

@@ -41,29 +41,25 @@ class Client:
 
             return task.result()
 
-    @asyncio.coroutine
-    def start(self, *args, **kwargs):
+    async def start(self, *args, **kwargs):
         if len(args) > 0:
-            yield from self.login(*args)
-        yield from self.init()
+            await self.login(*args)
+        await self.init()
 
-    @asyncio.coroutine
-    def init(self):
-        yield from self.chat._start()
+    async def init(self):
+        await self.chat._start()
 
         while True:
-            yield from self.event_listener.listen()
+            await self.event_listener.listen()
 
-    @asyncio.coroutine
-    def close(self):
+    async def close(self):
         # TODO: Only if signed in
-        # yield from self.http.leave_chat()
+        # await self.http.leave_chat()
         # TODO: Only if logged in
-        # yield from self.http.logout()
-        # yield from self.http.close()
+        # await self.http.logout()
+        # await self.http.close()
         ...
 
-    @asyncio.coroutine
-    def login(self, email, password):
+    async def login(self, email, password):
         logger.info('Attempting to login')
-        yield from self.http.login(email, password)
+        await self.http.login(email, password)
