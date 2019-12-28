@@ -1,11 +1,12 @@
 # -*- encoding: UTF-8 -*-
 
-from bs4 import BeautifulSoup, SoupStrainer
 import re
+
+from bs4 import BeautifulSoup, SoupStrainer
 
 
 # Makes BeautifulSoup parse only ban entry elements
-only_ban_entries = SoupStrainer('label')
+only_ban_entries = SoupStrainer("label")
 
 # RegEx to extract informations from the ban list.
 # This is meant to be used for tt(Tatar) language.
@@ -38,33 +39,33 @@ parse_ban_message = re.compile(
         (?P<author>.{1,25}?)  # Nickname of the author of the ban
         (,[ ]комментарий:[ ]) # We need this to know when the author nickname
                               # ends and when the ban comment starts
-        (?P<comment>(.|\n){,256}?)$""", re.VERBOSE)
+        (?P<comment>(.|\n){,256}?)$""",
+    re.VERBOSE,
+)
 
 
 def patch_ban_info(ban_info, ban_data):
     # Add 'id' field contained in the child element
     # And strips the commas out of the duration string
-    ban_info['id'] = ban_data['value']
-    ban_info['duration'] = join_all_numbers(ban_info['duration'])
+    ban_info["id"] = ban_data["value"]
+    ban_info["duration"] = join_all_numbers(ban_info["duration"])
 
     return ban_info
 
 
-def generate_bans_info_from_html(html_ban_list, parser='html.parser'):
+def generate_bans_info_from_html(html_ban_list, parser="html.parser"):
     """An utility function for parsing HTML ban lists.
 
     :param ban_list: the HTML ban list returned by the Chatovod API.
     """
 
     # A soup containing all ban entry elements found in the HTML string
-    ban_entries_soup = BeautifulSoup(html_ban_list,
-                                     parser,
-                                     parse_only=only_ban_entries)
+    ban_entries_soup = BeautifulSoup(html_ban_list, parser, parse_only=only_ban_entries)
 
     for ban_entry in ban_entries_soup:
         # Match the child element which contains the ID of the ban
         # Used to identify valid ban entries
-        ban_data = ban_entry.find(class_='banEntry')
+        ban_data = ban_entry.find(class_="banEntry")
         if ban_data is None:
             continue
 
@@ -75,5 +76,5 @@ def generate_bans_info_from_html(html_ban_list, parser='html.parser'):
         yield patched_ban_info
 
 
-def join_all_numbers(string, separator=''):
+def join_all_numbers(string, separator=""):
     return separator.join([char for char in string if char.isdigit()])

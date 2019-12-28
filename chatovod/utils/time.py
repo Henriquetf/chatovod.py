@@ -1,4 +1,3 @@
-
 def twelve_to_24_clock(hour, period):
     """Convert 12-hour clock format to 24-hour clock format.
 
@@ -9,10 +8,10 @@ def twelve_to_24_clock(hour, period):
     if not (hour >= 0 and hour <= 12):
         raise ValueError("Invalid 12-hour clock time. Got {0}".format(hour))
 
-    if period == 'AM':
+    if period == "AM":
         if hour == 12:
             return 0
-    elif period == 'PM':
+    elif period == "PM":
         if hour < 12:
             return hour + 12
     else:

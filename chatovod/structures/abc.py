@@ -1,6 +1,4 @@
-import asyncio
-
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 
 class Message(metaclass=ABCMeta):

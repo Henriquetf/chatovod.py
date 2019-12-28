@@ -2,16 +2,15 @@ import asyncio
 import logging
 
 from .chat import Chat
-from .http import HTTPClient
 from .client_user import ClientUser
+from .http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
 
 class Client:
-
     def __init__(self, chat_name, custom=False, loop=None):
-        self.host = chat_name if custom else '{}.chatovod.com'.format(chat_name)
+        self.host = chat_name if custom else "{}.chatovod.com".format(chat_name)
         self.loop = asyncio.get_event_loop() if loop is None else loop
         self.user = ClientUser(client=self)
         self.http = HTTPClient(host=self.host, loop=loop)
@@ -61,5 +60,5 @@ class Client:
         ...
 
     async def login(self, email, password):
-        logger.info('Attempting to login')
+        logger.info("Attempting to login")
         await self.http.login(email, password)

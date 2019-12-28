@@ -9,11 +9,11 @@ class HTTPException(ChatovodException):
     """ """
 
 
-class ConnectionError(HTTPException):
+class ChatovodConnectionError(HTTPException):
     """ """
 
 
-class ConnectionReset(ConnectionError):
+class ConnectionReset(ChatovodConnectionError):
     """ """
 
 
@@ -31,15 +31,15 @@ class InvalidLogin(HTTPException):
 
 def error_factory(raw):
     error = ErrorAdapter.adapt(raw)
-    error_type = error['type']
+    error_type = error["type"]
 
-    if error_type == 'connection':
-        if error['group'] == 'reset':
+    if error_type == "connection":
+        if error["group"] == "reset":
             return ConnectionReset
         else:
-            return ConnectionError
-    elif error_type == 'auth':
-        if error['group'] == 'alreadySignedIn':
+            return ChatovodConnectionError
+    elif error_type == "auth":
+        if error["group"] == "alreadySignedIn":
             return UnavailableName
         else:
             return Forbidden

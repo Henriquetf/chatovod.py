@@ -25,13 +25,13 @@ class Emoji:
     """
 
     def __init__(self, *, event):
-        self.width = event.get('w')
-        self.height = event.get('h')
-        self.placeholder = event.get('c')
-        self.is_default = event.get('default', True)
-        self.path = event.get('i')
-        self.vip = event.get('p', False)
-        self.group_id = event.get('s')
+        self.width = event.get("w")
+        self.height = event.get("h")
+        self.placeholder = event.get("c")
+        self.is_default = event.get("default", True)
+        self.path = event.get("i")
+        self.vip = event.get("p", False)
+        self.group_id = event.get("s")
 
     @property
     def url(self):
@@ -66,8 +66,8 @@ class EmojiGroup:
 
     def __init__(self, client, event):
         self.client = client
-        self.id = event.pop('id')
-        self.name = event.pop('t')
+        self.id = event.pop("id")
+        self.name = event.pop("t")
         self.emojis = OrderedDict()
 
     def _add_emoji(self, emoji):
