@@ -1,3 +1,5 @@
+import pytest
+
 from chatovod.api.states import State
 
 
@@ -38,6 +40,10 @@ class TestState:
 
         assert my_room is not None
         assert my_room == RoomType.empty
+
+    def test_create_from_raises_error_on_invalid_value(self):
+        with pytest.raises(ValueError):
+            RoomType.create_from(100)
 
     def test_state_can_be_extended(self):
         assert issubclass(Language, State)

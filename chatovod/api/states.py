@@ -41,7 +41,7 @@ class AccountService(State):
     ok_ru = "od"
 
     def _default(self):
-        return self.guest
+        return AccountService.guest
 
 
 class Language(State):
@@ -59,7 +59,7 @@ class Language(State):
     turkish = "tr"
 
     def _default(self):
-        return self.default
+        return Language.default
 
 
 class RoomType(State):
@@ -70,7 +70,7 @@ class RoomType(State):
     _private = 2
 
     def _default(self):
-        return self.public
+        return RoomType.public
 
 
 class Gender(State):
@@ -81,7 +81,7 @@ class Gender(State):
     male = 2
 
     def _default(self):
-        return self.none
+        return Gender.none
 
 
 class Group(State):
@@ -92,7 +92,7 @@ class Group(State):
     admin = "admin"
 
     def _default(self):
-        return self.user
+        return Group.user
 
 
 class Status(State):
@@ -104,4 +104,4 @@ class Status(State):
     invisible = "invis"
 
     def _default(self):
-        return self.online
+        return Status.online
