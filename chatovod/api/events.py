@@ -1,18 +1,18 @@
-from .events_collection import EventsCollection
+from .event_adapter import EventsCollection
 
 
 APIEvents = EventsCollection()
 
 
 @APIEvents.register
-class SetOptionAdapter:
+class SetOptionEvent:
     event_type = "so"
     new_type = "set_option"
     transforms = {"k": "option", "v": "value"}
 
 
 @APIEvents.register
-class CLSAdapter:
+class CLSEvent:
     event_type = "cls"
     transforms = {
         "accountName": "email",
@@ -23,7 +23,7 @@ class CLSAdapter:
 
 
 @APIEvents.register
-class ChatEmojisAdapter:
+class ChatEmojisEvent:
     event_type = "sl"
     new_type = "chat_emojis"
     transforms = {
@@ -35,7 +35,7 @@ class ChatEmojisAdapter:
 
 
 @APIEvents.register
-class ErrorAdapter:
+class ErrorEvent:
     event_type = "error"
     transforms = {
         "et": "type",
@@ -47,7 +47,7 @@ class ErrorAdapter:
 
 
 @APIEvents.register
-class MessageAdapter:
+class MessageEvent:
     event_type = "m"
     new_type = "message"
     transforms = {
@@ -60,28 +60,28 @@ class MessageAdapter:
 
 
 @APIEvents.register
-class MessageDeleteAdapter:
+class MessageDeleteEvent:
     event_type = "md"
     new_type = "message_delete"
     transforms = {"ts": "messages", "r": "room_id"}
 
 
 @APIEvents.register
-class MessageReadAdapter:
+class MessageReadEvent:
     event_type = "pmr"
     new_type = "message_read"
     transforms = {"fromTime": "from_ts", "toTime": "until_ts"}
 
 
 @APIEvents.register
-class RoomUpdateAdapter:
+class RoomUpdateEvent:
     event_type = "ru"
     new_type = "room_update"
     transforms = {"closeable": "can_be_closed", "showEnterLeave": "display_user_flow"}
 
 
 @APIEvents.register
-class RoomOpenAdapter:
+class RoomOpenEvent:
     event_type = "ro"
     new_type = "room_open"
     transforms = {
@@ -95,42 +95,42 @@ class RoomOpenAdapter:
 
 
 @APIEvents.register
-class RoomCloseAdapter:
+class RoomCloseEvent:
     event_type = "rc"
     new_type = "room_close"
     transforms = {"r": "room_id", "iwid": "window_id"}
 
 
 @APIEvents.register
-class HasOlderEventsAdapter:
+class HasOlderEventsEvent:
     event_type = "hoe"
     new_type = "has_older_events"
     transforms = {"r": "room_id", "hasOlderEvents": "value"}
 
 
 @APIEvents.register
-class UserLeaveAdapter:
+class UserLeaveEvent:
     event_type = "ul"
     new_type = "user_leave"
     transforms = {"nick": "nickname"}
 
 
 @APIEvents.register
-class UserEnterAdapter:
+class UserEnterEvent:
     event_type = "ue"
     new_type = "user_enter"
     transforms = {}
 
 
 @APIEvents.register
-class UserEnterRoomAdapter:
+class UserEnterRoomEvent:
     event_type = "uer"
     new_type = "user_enter_room"
     transforms = {}
 
 
 @APIEvents.register
-class UserLeaveRoomAdapter:
+class UserLeaveRoomEvent:
     event_type = "ulr"
     new_type = "user_leave_room"
     transforms = {}

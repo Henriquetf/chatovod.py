@@ -1,5 +1,8 @@
-from chatovod.api.event_adapter import EventAdapter
-from chatovod.api.events_collection import API_EVENT_TYPE_ATTRIBUTE, EventsCollection
+from chatovod.api.event_adapter import (
+    API_EVENT_TYPE_ATTRIBUTE,
+    EventAdapter,
+    EventsCollection,
+)
 
 import pytest
 
