@@ -64,7 +64,7 @@ class TestState:
         assert UserType.admin != 0
         assert not (UserType.admin != 1)
 
-    def test_string_comparisony(self):
+    def test_string_comparison(self):
         my_language = Language("en")
 
         assert my_language == Language.english
