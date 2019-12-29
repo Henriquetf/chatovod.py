@@ -1,12 +1,9 @@
-from collections import namedtuple
+from typing import NamedTuple
 
 
-Path = namedtuple("Path", "method path")
-_Route = namedtuple("Route", "method url")
-
-
-def Route(path, url):
-    return _Route(method=path.method, url=url.with_path(path.path))
+class Route(NamedTuple):
+    method: str
+    path: str
 
 
 class AccountEndpoint:
@@ -14,44 +11,44 @@ class AccountEndpoint:
 
     BASE = "https://account.chatovod.com"
 
-    LOGIN_PAGE = _Route("HEAD", BASE + "/u/login")
-    LOGIN = _Route("POST", BASE + "/u/login.do")
-    LOGOUT = _Route("GET", BASE + "/u/logout")
+    LOGIN_PAGE = Route("HEAD", "/u/login")
+    LOGIN = Route("POST", "/u/login.do")
+    LOGOUT = Route("GET", "/u/logout")
 
-    ASSOCIATE_ACCOUNT = Path("GET", "/widget/login")
+    ASSOCIATE_ACCOUNT = Route("GET", "/widget/login")
 
 
 class APIEndpoint:
     """Endpoints for the Chatovod chat API."""
 
-    host = "chatovod.com"
+    HOST = "chatovod.com"
 
     # Chat
-    CHAT_BIND = Path("GET", "/chat/bind")
-    CHAT_INFO_FETCH = Path("GET", "/chat/start")
-    CHAT_SESSION_FETCH = Path("HEAD", "/")
-    CHAT_BANS_FETCH = Path("GET", "/chat/load/banlist")
-    CHAT_ROOMS_FETCH = Path("GET", "/chat/load/rooms")
+    CHAT_BIND = Route("GET", "/chat/bind")
+    CHAT_INFO_FETCH = Route("GET", "/chat/start")
+    CHAT_SESSION_FETCH = Route("HEAD", "/")
+    CHAT_BANS_FETCH = Route("GET", "/chat/load/banlist")
+    CHAT_ROOMS_FETCH = Route("GET", "/chat/load/rooms")
 
     # Chat - Nickname
-    CHAT_NICKNAME_BAN = Path("POST", "/chat/ban")
-    CHAT_NICKNAME_UNBAN = Path("POST", "/chat/unban")
-    CHAT_NICKNAME_MODERATE = Path("GET", "/chat/getChatNickLocalModInfo")
-    CHAT_NICKNAME_FETCH = Path("POST", "/chat/getChatNickLocal")
+    CHAT_NICKNAME_BAN = Route("POST", "/chat/ban")
+    CHAT_NICKNAME_UNBAN = Route("POST", "/chat/unban")
+    CHAT_NICKNAME_MODERATE = Route("GET", "/chat/getChatNickLocalModInfo")
+    CHAT_NICKNAME_FETCH = Route("POST", "/chat/getChatNickLocal")
 
     # Room
-    ROOM_OPEN = Path("POST", "/chat/openRoom")
-    ROOM_PRIVATE_OPEN = Path("POST", "/chat/openPrivate2")
-    ROOM_CLOSE = Path("POST", "/chat/closeRoom")
+    ROOM_OPEN = Route("POST", "/chat/openRoom")
+    ROOM_PRIVATE_OPEN = Route("POST", "/chat/openPrivate2")
+    ROOM_CLOSE = Route("POST", "/chat/closeRoom")
 
-    ROOM_MESSAGE_SEND = Path("POST", "/chat/send")
-    ROOM_MESSAGES_READ = Path("POST", "/chat/markChannelRead")
-    ROOM_MESSAGES_DELETE = Path("POST", "/chat/deleteMessages")
-    ROOM_MESSAGES_FETCH = Path("GET", "/chat/loadLastMessages")
+    ROOM_MESSAGE_SEND = Route("POST", "/chat/send")
+    ROOM_MESSAGES_READ = Route("POST", "/chat/markChannelRead")
+    ROOM_MESSAGES_DELETE = Route("POST", "/chat/deleteMessages")
+    ROOM_MESSAGES_FETCH = Route("GET", "/chat/loadLastMessages")
 
     # User
-    USER_CHAT_ENTER = Path("POST", "/chat/auth")
-    USER_CHAT_LEAVE = Path("GET", "/chat/signOut")
-    USER_AGE_SET = Path("POST", "/chat/setAge")
-    USER_STATUS_SET = Path("POST", "/chat/setStatus")
-    USER_REGISTER = Path("GET", "/register")
+    USER_CHAT_ENTER = Route("POST", "/chat/auth")
+    USER_CHAT_LEAVE = Route("GET", "/chat/signOut")
+    USER_AGE_SET = Route("POST", "/chat/setAge")
+    USER_STATUS_SET = Route("POST", "/chat/setStatus")
+    USER_REGISTER = Route("GET", "/register")
