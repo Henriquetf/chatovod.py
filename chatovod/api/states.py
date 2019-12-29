@@ -1,7 +1,34 @@
 from enum import Enum
 
 
-class AccountService(Enum):
+class State(Enum):
+    @classmethod
+    def create_from(cls, value):
+        try:
+            state = cls(value)
+            return state
+        except ValueError as e:
+            if value is None:
+                return cls._default(cls)
+
+            raise e
+
+    def __eq__(self, value):
+        if isinstance(value, State):
+            return super().__eq__(value)
+
+        return value == self.value
+
+    def __ne__(self, value):
+        neq = self.__eq__(value)
+
+        if neq is NotImplemented:
+            return NotImplemented
+
+        return not neq
+
+
+class AccountService(State):
     """Service where the account is registered."""
 
     guest = None
@@ -14,10 +41,10 @@ class AccountService(Enum):
     ok_ru = "od"
 
     def _default(self):
-        return AccountService.guest
+        return self.guest
 
 
-class Language(Enum):
+class Language(State):
     """The language used in the interface of the chat service.
     It also determines the language of the messages returned by the API.
     i.e.: error messages and ban list text."""
@@ -32,10 +59,10 @@ class Language(Enum):
     turkish = "tr"
 
     def _default(self):
-        return Language.default
+        return self.default
 
 
-class RoomType(Enum):
+class RoomType(State):
     """The type of the room."""
 
     public = 0
@@ -43,10 +70,10 @@ class RoomType(Enum):
     _private = 2
 
     def _default(self):
-        return RoomType.public
+        return self.public
 
 
-class Gender(Enum):
+class Gender(State):
     """The gender of the user."""
 
     none = None
@@ -54,10 +81,10 @@ class Gender(Enum):
     male = 2
 
     def _default(self):
-        return Gender.none
+        return self.none
 
 
-class Group(Enum):
+class Group(State):
     """The group which the user belongs to."""
 
     user = None
@@ -65,10 +92,10 @@ class Group(Enum):
     admin = "admin"
 
     def _default(self):
-        return Group.user
+        return self.user
 
 
-class Status(Enum):
+class Status(State):
     """The current availability of the user."""
 
     online = None
@@ -77,4 +104,4 @@ class Status(Enum):
     invisible = "invis"
 
     def _default(self):
-        return Status.online
+        return self.online
