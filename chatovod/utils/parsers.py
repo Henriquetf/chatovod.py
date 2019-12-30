@@ -1,11 +1,14 @@
 # -*- encoding: UTF-8 -*-
 
 import re
+from datetime import date, time
 
 from bs4 import BeautifulSoup, SoupStrainer
 
-# Makes BeautifulSoup parse only ban entry elements
-only_ban_entries = SoupStrainer("label")
+from .time import twelve_to_24_clock
+
+# Makes BeautifulSoup parse only label elements
+PARSE_ONLY_BAN_ENTRIES = SoupStrainer("label")
 
 # RegEx to extract informations from the ban list.
 # This is meant to be used for tt(Tatar) language.
@@ -18,8 +21,10 @@ only_ban_entries = SoupStrainer("label")
 # 'Fluffy дат(тан) 12.31.2016 12.50 AM чаклы (120 minutes) '
 # 'модераторларга EvilModerator, комментарий: I banned you'
 
+
 parse_ban_message = re.compile(
-    r"""(?P<nickname>.{1,25}?) # A nickname must have up to 25 characters
+    r"""([ ]+)? # There is an space between the banEntry tag and the nickname
+        (?P<nickname>.{1,25}?) # A nickname may contain 25 characters at most
         ([ ]\S*[ ])            # Single space, non-space characters, single space
         (?P<month>[0-9]{1,2})  # Month
         .(?P<day>[0-9]{1,2})   # Day
@@ -43,13 +48,29 @@ parse_ban_message = re.compile(
 )
 
 
-def patch_ban_info(ban_info, ban_data):
-    # Add 'id' field contained in the child element
-    # And strips the commas out of the duration string
-    ban_info["id"] = ban_data["value"]
-    ban_info["duration"] = join_all_numbers(ban_info["duration"])
+def patch_ban_info(ban_info):
+    patched_year = 2000 + int(ban_info["year"])
+    patched_month = int(ban_info["month"])
+    patched_day = int(ban_info["day"])
 
-    return ban_info
+    patched_hour = twelve_to_24_clock(int(ban_info["hour"]), ban_info["period"])
+    patched_minute = int(ban_info["minute"])
+
+    patched_nickname = ban_info["nickname"].strip()
+    # Strips the commas out of the duration string
+    patched_duration = int(join_all_numbers(ban_info["duration"]))
+
+    patched_ban = {
+        "id": ban_info["id"],
+        "nickname": patched_nickname,
+        "time": time(patched_hour, patched_minute),
+        "date": date(patched_year, patched_month, patched_day),
+        "duration": patched_duration,
+        "author": ban_info["author"],
+        "comment": ban_info["comment"],
+    }
+
+    return patched_ban
 
 
 def generate_bans_info_from_html(html_ban_list, parser="html.parser"):
@@ -59,7 +80,9 @@ def generate_bans_info_from_html(html_ban_list, parser="html.parser"):
     """
 
     # A soup containing all ban entry elements found in the HTML string
-    ban_entries_soup = BeautifulSoup(html_ban_list, parser, parse_only=only_ban_entries)
+    ban_entries_soup = BeautifulSoup(
+        html_ban_list, parser, parse_only=PARSE_ONLY_BAN_ENTRIES
+    )
 
     for ban_entry in ban_entries_soup:
         # Match the child element which contains the ID of the ban
@@ -70,9 +93,9 @@ def generate_bans_info_from_html(html_ban_list, parser="html.parser"):
 
         ban_info_match = parse_ban_message.search(ban_entry.text)
         ban_info = ban_info_match.groupdict()
-        patched_ban_info = patch_ban_info(ban_info, ban_data)
+        ban_info["id"] = ban_data["value"]
 
-        yield patched_ban_info
+        yield ban_info
 
 
 def join_all_numbers(string, separator=""):
