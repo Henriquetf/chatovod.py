@@ -12,7 +12,10 @@ class BanInfo(NamedTuple):
     expected_patch: dict
 
 
-BAN_LIST = [
+BanInfoList = List[BanInfo]
+
+
+BAN_LIST: BanInfoList = [
     BanInfo(
         html='    <p><label><input type="checkbox" class="banEntry" value="2479317"/> P&atilde;o Macio дат(тан) 6/26/17 7:27 PM чаклы (44,640 минут) модераторларга Kryptonite, комментарий: &lt;label&gt;&lt;/label&gt;&lt;/html&gt;</label></p>\r\n',  # noqa
         expected_parse={
@@ -91,7 +94,6 @@ BAN_LIST = [
 ]
 
 
-@pytest.fixture
 def ban_list():
     return BAN_LIST
 
@@ -113,7 +115,7 @@ def test_parse_returns_correct_size(html_ban_list):
     assert len(list(generate_bans_info_from_html(html_ban_list))) == 3
 
 
-def test_bans_bans(bans_loop: BanInfo):
+def test_parse_bans(bans_loop: BanInfo):
     assert (
         next(generate_bans_info_from_html(bans_loop.html)) == bans_loop.expected_parse
     )
@@ -123,11 +125,11 @@ def test_patch_bans(bans_loop: BanInfo):
     assert patch_ban_info(bans_loop.expected_parse) == bans_loop.expected_patch
 
 
-def test_all_parses(html_ban_list, ban_list: List[BanInfo]):
+def test_all_parses(html_ban_list, ban_list: BanInfoList):
     for index, parse in enumerate(generate_bans_info_from_html(html_ban_list)):
         assert parse == ban_list[index].expected_parse
 
 
-def test_all_patches(html_ban_list, ban_list: List[BanInfo]):
+def test_all_patches(html_ban_list, ban_list: BanInfoList):
     for index, patch in enumerate(generate_bans_info_from_html(html_ban_list)):
         assert patch_ban_info(patch) == ban_list[index].expected_patch
