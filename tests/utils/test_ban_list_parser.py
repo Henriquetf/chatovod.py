@@ -94,6 +94,7 @@ BAN_LIST: BanInfoList = [
 ]
 
 
+@pytest.fixture
 def ban_list():
     return BAN_LIST
 
