@@ -40,7 +40,7 @@ def fake_api_new_type_data():
 
 class TestEventAdapter:
     def test_transform(self, api_data: dict, api_transform: dict):
-        event_adapter = EventAdapter(None)
+        event_adapter = EventAdapter(None)  # type: ignore
 
         api_data_keys = api_data.keys()
 

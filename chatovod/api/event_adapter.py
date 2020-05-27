@@ -8,16 +8,16 @@ class EventNotRegisteredError(Exception):
 
 
 class BaseEvent:
-    event_type: str = None
-    new_type: int = None
-    transforms: dict = None
+    event_type: str
+    new_type: str
+    transforms: dict
 
 
 class EventsCollection:
     def __init__(self):
         self.events_map = {}
 
-    def register(self, event_structure: BaseEvent):
+    def register(self, event_structure):
         self.events_map[event_structure.event_type] = event_structure
 
         return event_structure

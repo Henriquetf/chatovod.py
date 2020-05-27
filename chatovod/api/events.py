@@ -1,3 +1,5 @@
+from typing import Dict
+
 from .event_adapter import EventsCollection
 
 APIEvents = EventsCollection()
@@ -118,18 +120,18 @@ class UserLeaveEvent:
 class UserEnterEvent:
     event_type = "ue"
     new_type = "user_enter"
-    transforms = {}
+    transforms: Dict[str, str] = {}
 
 
 @APIEvents.register
 class UserEnterRoomEvent:
     event_type = "uer"
     new_type = "user_enter_room"
-    transforms = {}
+    transforms: Dict[str, str] = {}
 
 
 @APIEvents.register
 class UserLeaveRoomEvent:
     event_type = "ulr"
     new_type = "user_leave_room"
-    transforms = {}
+    transforms: Dict[str, str] = {}

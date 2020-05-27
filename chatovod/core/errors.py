@@ -1,4 +1,4 @@
-from chatovod.api.event_adapter import ErrorAdapter
+from chatovod.api.event_adapter import EventAdapter
 
 
 class ChatovodException(Exception):
@@ -30,7 +30,7 @@ class InvalidLogin(HTTPException):
 
 
 def error_factory(raw):
-    error = ErrorAdapter.adapt(raw)
+    error = EventAdapter.adapt(data=raw)
     error_type = error["type"]
 
     if error_type == "connection":
