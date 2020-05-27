@@ -6,8 +6,8 @@ chatovod.py
 .. image:: https://img.shields.io/pypi/v/chatovod_py.svg
         :target: https://pypi.python.org/pypi/chatovod_py
 
-.. image:: https://img.shields.io/travis/Henriquetf/chatovod_py.svg
-        :target: https://travis-ci.org/Henriquetf/chatovod_py
+.. image:: https://codecov.io/gh/Henriquetf/chatovod.py/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/Henriquetf/chatovod.py
 
 
 
